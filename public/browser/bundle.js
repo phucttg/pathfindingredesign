@@ -86,9 +86,8 @@ AnimationController.prototype._scheduleNext = function () {
 module.exports = AnimationController;
 
 },{}],2:[function(require,module,exports){
-const weightedSearchAlgorithm = require("../pathfindingAlgorithms/weightedSearchAlgorithm");
-const unweightedSearchAlgorithm = require("../pathfindingAlgorithms/unweightedSearchAlgorithm");
 const historyStorage = require("../utils/historyStorage");
+const historyUI = require("../utils/historyUI");
 const serializeRun = require("../utils/runSerializer");
 
 function launchAnimations(board, success, type) {
@@ -145,6 +144,7 @@ function launchAnimations(board, success, type) {
     board.lastVisitedCount = nodes.length;
     board.nodesToAnimate = [];
     if (progressEl) progressEl.textContent = "";
+    if (board.activateInsightTab) board.activateInsightTab();
 
     if (board.currentTrace && board.currentTrace.length > 0 && board.updateExplanationPanel) {
       var finalEvent = board.currentTrace[board.currentTrace.length - 1];
@@ -158,9 +158,9 @@ function launchAnimations(board, success, type) {
       board.drawShortestPathTimeout(board.target, board.start, type);
       board.reset();
       var visitedCount = nodes.length;
-      board.displayPathCost(visitedCount);
       var runSummary = serializeRun(board, success, visitedCount);
       historyStorage.saveRun(runSummary);
+      if (historyUI.renderHistoryList) historyUI.renderHistoryList(board);
       console.log("[Run Complete]", runSummary);
       return;
     }
@@ -194,7 +194,7 @@ function launchAnimations(board, success, type) {
 
 module.exports = launchAnimations;
 
-},{"../pathfindingAlgorithms/unweightedSearchAlgorithm":16,"../pathfindingAlgorithms/weightedSearchAlgorithm":17,"../utils/historyStorage":23,"../utils/runSerializer":25}],3:[function(require,module,exports){
+},{"../utils/historyStorage":23,"../utils/historyUI":24,"../utils/runSerializer":25}],3:[function(require,module,exports){
 const weightedSearchAlgorithm = require("../pathfindingAlgorithms/weightedSearchAlgorithm");
 const unweightedSearchAlgorithm = require("../pathfindingAlgorithms/unweightedSearchAlgorithm");
 
@@ -345,8 +345,6 @@ const simpleDemonstration = require("./mazeAlgorithms/simpleDemonstration");
 const explanationTemplates = require("./utils/explanationTemplates");
 const bidirectional = require("./pathfindingAlgorithms/bidirectional");
 const getDistance = require("./getDistance");
-const serializeRun = require("./utils/runSerializer");
-const historyStorage = require("./utils/historyStorage");
 const aiExplain = require("./utils/aiExplain");
 const historyUI = require("./utils/historyUI");
 const weightImpactAnalyzer = require("./utils/weightImpactAnalyzer");
@@ -376,7 +374,8 @@ function Board(height, width) {
   this.buttonsOn = false;
   this.speed = "fast";
   this.currentWeightValue = 15;
-  this.explanationPanelVisible = localStorage.getItem("explanationPanelVisible") === "true";
+  this.sidebarOpen = localStorage.getItem("sidebarOpen");
+  this.sidebarOpen = this.sidebarOpen === null ? true : this.sidebarOpen === "true";
   this.currentTrace = [];
   this.traceCursor = 0;
   this.lastVisitedCount = 0;
@@ -389,66 +388,178 @@ function Board(height, width) {
     currentNode: null
   };
   this.animationController = new AnimationController();
-
-  var panel = document.getElementById("explanationPanel");
-  if (panel && !this.explanationPanelVisible) {
-    panel.classList.add("hidden");
-  }
 }
 
 Board.prototype.initialise = function () {
   this.createGrid();
   this.addEventListeners();
-  this.initExplanationPanel();
+  this.initSidebar();
   historyUI.initHistoryUI(this);
   this.toggleTutorialButtons();
 };
 
-Board.prototype.initExplanationPanel = function () {
+Board.prototype.initSidebar = function () {
   var currentObject = this;
-  var panel = document.getElementById("explanationPanel");
-  if (!panel) return;
+  var sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
 
-  if (!this.explanationPanelVisible) {
-    panel.classList.add("hidden");
-    document.body.classList.remove("panel-open");
-  } else {
-    panel.classList.remove("hidden");
-    document.body.classList.add("panel-open");
+  if (window.innerWidth < 1200 && localStorage.getItem("sidebarOpen") === null) {
+    this.sidebarOpen = false;
   }
 
-  var toggleButton = document.getElementById("toggleExplanationBtn");
-  var closeButton = document.getElementById("closeExplanationBtn");
+  this.applySidebarState();
+  this.setSidebarTab("controls");
+
+  var toggleButton = document.getElementById("toggleSidebarBtn");
+  var tabControls = document.getElementById("tabControls");
+  var tabInsight = document.getElementById("tabInsight");
+  var sidebarClearPath = document.getElementById("sidebarClearPath");
+  var sidebarClearWalls = document.getElementById("sidebarClearWalls");
+  var sidebarClearBoard = document.getElementById("sidebarClearBoard");
+  var algoInfoBtn = document.getElementById("algoInfoBtn");
+
   if (toggleButton) {
     toggleButton.addEventListener("click", function () {
-      currentObject.toggleExplanationPanel();
+      currentObject.toggleSidebar();
     });
   }
-  if (closeButton) {
-    closeButton.addEventListener("click", function () {
-      currentObject.toggleExplanationPanel();
+
+  if (tabControls) {
+    tabControls.addEventListener("click", function () {
+      currentObject.setSidebarTab("controls");
     });
   }
+
+  if (tabInsight) {
+    tabInsight.addEventListener("click", function () {
+      currentObject.setSidebarTab("insight");
+    });
+  }
+
+  if (sidebarClearPath) {
+    sidebarClearPath.addEventListener("click", function () {
+      var clearPathButton = document.getElementById("startButtonClearPath");
+      if (clearPathButton && typeof clearPathButton.onclick === "function") {
+        clearPathButton.onclick();
+      }
+    });
+  }
+
+  if (sidebarClearWalls) {
+    sidebarClearWalls.addEventListener("click", function () {
+      var clearWallsButton = document.getElementById("startButtonClearWalls");
+      if (clearWallsButton && typeof clearWallsButton.onclick === "function") {
+        clearWallsButton.onclick();
+      }
+    });
+  }
+
+  if (sidebarClearBoard) {
+    sidebarClearBoard.addEventListener("click", function () {
+      var clearBoardButton = document.getElementById("startButtonClearBoard");
+      if (clearBoardButton && typeof clearBoardButton.onclick === "function") {
+        clearBoardButton.onclick();
+      }
+    });
+  }
+
+  if (algoInfoBtn) {
+    algoInfoBtn.addEventListener("click", function () {
+      if (!currentObject.currentAlgorithm) return;
+      var key = algorithmDescriptions.getAlgorithmKey(currentObject.currentAlgorithm, currentObject.currentHeuristic);
+      algorithmModal.showAlgorithmInfo(key);
+    });
+  }
+
+  window.addEventListener("resize", function () {
+    currentObject.applySidebarState();
+  });
 
   this.updateExplanationPanel(null);
 };
 
-Board.prototype.toggleExplanationPanel = function () {
-  this.explanationPanelVisible = !this.explanationPanelVisible;
-  var panel = document.getElementById("explanationPanel");
-  if (panel) {
-    panel.classList.toggle("hidden");
+Board.prototype.applySidebarState = function () {
+  var sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
+
+  if (window.innerWidth <= 1199) {
+    sidebar.classList.remove("sidebar-collapsed");
+    if (this.sidebarOpen) {
+      sidebar.classList.add("sidebar-open");
+    } else {
+      sidebar.classList.remove("sidebar-open");
+    }
+    return;
   }
-  if (this.explanationPanelVisible) {
-    document.body.classList.add("panel-open");
+
+  sidebar.classList.remove("sidebar-open");
+  if (this.sidebarOpen) {
+    sidebar.classList.remove("sidebar-collapsed");
   } else {
-    document.body.classList.remove("panel-open");
+    sidebar.classList.add("sidebar-collapsed");
   }
-  localStorage.setItem("explanationPanelVisible", this.explanationPanelVisible);
+};
+
+Board.prototype.toggleSidebar = function (forceOpen) {
+  if (typeof forceOpen === "boolean") {
+    this.sidebarOpen = forceOpen;
+  } else {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  this.applySidebarState();
+  localStorage.setItem("sidebarOpen", this.sidebarOpen);
+};
+
+Board.prototype.setSidebarTab = function (tab) {
+  var controlsTab = document.getElementById("tabControls");
+  var insightTab = document.getElementById("tabInsight");
+  var controlsPanel = document.getElementById("panelControls");
+  var insightPanel = document.getElementById("panelInsight");
+
+  if (!controlsTab || !insightTab || !controlsPanel || !insightPanel) return;
+
+  var showInsight = tab === "insight";
+  controlsTab.classList.toggle("active", !showInsight);
+  insightTab.classList.toggle("active", showInsight);
+  controlsPanel.classList.toggle("active", !showInsight);
+  insightPanel.classList.toggle("active", showInsight);
+};
+
+Board.prototype.activateControlsTab = function () {
+  this.setSidebarTab("controls");
+};
+
+Board.prototype.activateInsightTab = function () {
+  this.setSidebarTab("insight");
+};
+
+Board.prototype.updateRunningStateUI = function (isRunning) {
+  var startButton = document.getElementById("startButtonStart");
+  if (startButton) {
+    startButton.classList.toggle("hidden", isRunning);
+  }
+
+  if (!isRunning) {
+    var controls = document.getElementById("animationControls");
+    var progress = document.getElementById("animationProgress");
+    if (controls) controls.classList.add("hidden");
+    if (progress) progress.textContent = "";
+  }
+};
+
+Board.prototype.initExplanationPanel = function () {
+  this.initSidebar();
+};
+
+Board.prototype.toggleExplanationPanel = function () {
+  this.toggleSidebar();
 };
 
 Board.prototype.updateExplanationPanel = function (event) {
+  var insightPlaceholder = document.getElementById("insightPlaceholder");
+
   if (!event) {
+    if (insightPlaceholder) insightPlaceholder.classList.remove("hidden");
     document.getElementById("stepNumber").textContent = "—";
     document.getElementById("currentNodeInfo").querySelector(".node-coords").textContent = "—";
     document.getElementById("gCost").textContent = "—";
@@ -459,6 +570,8 @@ Board.prototype.updateExplanationPanel = function (event) {
     document.getElementById("visitedCountLive").textContent = "—";
     return;
   }
+
+  if (insightPlaceholder) insightPlaceholder.classList.add("hidden");
 
   var cached = this.lastKnownPanelValues;
   var computedCost = null;
@@ -872,6 +985,7 @@ Board.prototype.drawShortestPathTimeout = function (targetNodeId, startNodeId, t
     if (controls) controls.classList.add("hidden");
     if (progressEl) progressEl.textContent = "";
     board.toggleButtons();
+    board.activateInsightTab();
     var visitedCount = board.lastVisitedCount !== undefined ? board.lastVisitedCount :
       (board.nodesToAnimate ? board.nodesToAnimate.length : 0);
     var costObj = board.computePathCost();
@@ -907,16 +1021,16 @@ Board.prototype.drawShortestPathTimeout = function (targetNodeId, startNodeId, t
       }
     }
 
+    board.displayPathCost(visitedCount);
+
     if (visitedCount > 0 && pathLength > 0) {
       aiExplain.requestAIExplanation(board, visitedCount, pathLength);
     }
 
-    var impactDisplay = document.getElementById("weightImpactDisplay");
     var impactText = document.getElementById("weightImpactText");
-    if (impactDisplay && impactText) {
+    if (impactText) {
       var impact = weightImpactAnalyzer.analyzeWeightImpact(board);
       impactText.textContent = impact.explanation;
-      impactDisplay.classList.remove("hidden");
     }
   }
 
@@ -1034,11 +1148,11 @@ Board.prototype.displayPathCost = function (visitedCount) {
   document.getElementById("pathCost").textContent = metrics.cost;
   document.getElementById("pathLength").textContent = metrics.pathLength;
   document.getElementById("visitedCount").textContent = visitedCount;
-  document.getElementById("pathCostDisplay").classList.remove("hidden");
+  document.getElementById("resultsBar").classList.remove("hidden");
 };
 
 Board.prototype.hidePathCost = function () {
-  document.getElementById("pathCostDisplay").classList.add("hidden");
+  document.getElementById("resultsBar").classList.add("hidden");
 };
 
 Board.prototype.clearPath = function (clickedButton) {
@@ -1060,13 +1174,13 @@ Board.prototype.clearPath = function (clickedButton) {
     currentNode: null
   };
   this.updateExplanationPanel(null);
-  var impactDisplay = document.getElementById("weightImpactDisplay");
-  if (impactDisplay) {
-    impactDisplay.classList.add("hidden");
-  }
+  this.updateRunningStateUI(false);
+  var impactText = document.getElementById("weightImpactText");
+  if (impactText) impactText.textContent = "";
   if (clickedButton) {
     this.hidePathCost();
     aiExplain.hideAIExplanation();
+    this.activateControlsTab();
     let start = this.nodes[this.start];
     let target = this.nodes[this.target];
     start.status = "start";
@@ -1077,10 +1191,11 @@ Board.prototype.clearPath = function (clickedButton) {
 
   document.getElementById("startButtonStart").onclick = () => {
     if (!this.currentAlgorithm) {
-      document.getElementById("startButtonStart").innerHTML = '<button class="btn btn-default navbar-btn" type="button">Pick an Algorithm!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Pick an Algorithm!</button>'
     } else {
       this.clearPath("clickedButton");
       this.toggleButtons();
+      this.activateInsightTab();
       let weightedAlgorithms = ["dijkstra", "CLA", "greedy"];
       let unweightedAlgorithms = ["dfs", "bfs"];
       let success;
@@ -1331,13 +1446,15 @@ Board.prototype.toggleButtons = function () {
 
   if (!this.buttonsOn) {
     this.buttonsOn = true;
+    this.updateRunningStateUI(false);
 
     document.getElementById("startButtonStart").onclick = () => {
       if (!this.currentAlgorithm) {
-        document.getElementById("startButtonStart").innerHTML = '<button class="btn btn-default navbar-btn" type="button">Pick an Algorithm!</button>'
+        document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Pick an Algorithm!</button>'
       } else {
         this.clearPath("clickedButton");
         this.toggleButtons();
+        this.activateInsightTab();
         let weightedAlgorithms = ["dijkstra", "CLA", "CLA", "greedy"];
         let unweightedAlgorithms = ["dfs", "bfs"];
         let success;
@@ -1440,7 +1557,7 @@ Board.prototype.toggleButtons = function () {
 
 
     document.getElementById("startButtonBidirectional").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Bidirectional Swarm!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize Bidirectional Swarm!</button>'
       this.currentAlgorithm = "bidirectional";
       this.currentHeuristic = "manhattanDistance";
       this.clearPath("clickedButton");
@@ -1449,14 +1566,14 @@ Board.prototype.toggleButtons = function () {
     }
 
     document.getElementById("startButtonDijkstra").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Dijkstra\'s!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize Dijkstra\'s!</button>'
       this.currentAlgorithm = "dijkstra";
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("dijkstra"));
       this.changeStartNodeImages();
     }
 
     document.getElementById("startButtonAStar").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Swarm!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize Swarm!</button>'
       this.currentAlgorithm = "CLA";
       this.currentHeuristic = "manhattanDistance"
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("CLA", "manhattanDistance"));
@@ -1464,7 +1581,7 @@ Board.prototype.toggleButtons = function () {
     }
 
     document.getElementById("startButtonAStar2").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize A*!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize A*!</button>'
       this.currentAlgorithm = "astar";
       this.currentHeuristic = "poweredManhattanDistance"
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("astar"));
@@ -1472,7 +1589,7 @@ Board.prototype.toggleButtons = function () {
     }
 
     document.getElementById("startButtonAStar3").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Convergent Swarm!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize Convergent Swarm!</button>'
       this.currentAlgorithm = "CLA";
       this.currentHeuristic = "extraPoweredManhattanDistance"
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("CLA", "extraPoweredManhattanDistance"));
@@ -1480,14 +1597,14 @@ Board.prototype.toggleButtons = function () {
     }
 
     document.getElementById("startButtonGreedy").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Greedy!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize Greedy!</button>'
       this.currentAlgorithm = "greedy";
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("greedy"));
       this.changeStartNodeImages();
     }
 
     document.getElementById("startButtonBFS").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize BFS!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize BFS!</button>'
       this.currentAlgorithm = "bfs";
       this.clearWeights();
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("bfs"));
@@ -1495,7 +1612,7 @@ Board.prototype.toggleButtons = function () {
     }
 
     document.getElementById("startButtonDFS").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize DFS!</button>'
+      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize DFS!</button>'
       this.currentAlgorithm = "dfs";
       this.clearWeights();
       algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("dfs"));
@@ -1530,14 +1647,14 @@ Board.prototype.toggleButtons = function () {
       if (progressEl) progressEl.textContent = "";
       this.currentTrace = [];
       this.updateExplanationPanel(null);
-      var impactDisplay = document.getElementById("weightImpactDisplay");
-      if (impactDisplay) {
-        impactDisplay.classList.add("hidden");
-      }
-      let navbarHeight = document.getElementById("navbarDiv").clientHeight;
-      let textHeight = document.getElementById("mainText").clientHeight + document.getElementById("algorithmDescriptor").clientHeight;
-      let height = Math.floor((document.documentElement.clientHeight - navbarHeight - textHeight) / 28);
-      let width = Math.floor(document.documentElement.clientWidth / 25);
+      this.updateRunningStateUI(false);
+      this.hidePathCost();
+      aiExplain.hideAIExplanation();
+      var impactText = document.getElementById("weightImpactText");
+      if (impactText) impactText.textContent = "";
+      this.activateControlsTab();
+      let height = this.height;
+      let width = this.width;
       let start = Math.floor(height / 2).toString() + "-" + Math.floor(width / 4).toString();
       let target = Math.floor(height / 2).toString() + "-" + Math.floor(3 * width / 4).toString();
 
@@ -1627,6 +1744,7 @@ Board.prototype.toggleButtons = function () {
 
   } else {
     this.buttonsOn = false;
+    this.updateRunningStateUI(true);
     document.getElementById("startButtonDFS").onclick = null;
     document.getElementById("startButtonBFS").onclick = null;
     document.getElementById("startButtonDijkstra").onclick = null;
@@ -1676,11 +1794,21 @@ Board.prototype.toggleButtons = function () {
 
 }
 
-let navbarHeight = $("#navbarDiv").height();
-let textHeight = $("#mainText").height() + $("#algorithmDescriptor").height();
-let height = Math.floor(($(document).height() - navbarHeight - textHeight) / 28);
-let width = Math.floor($(document).width() / 25);
-let newBoard = new Board(height, width)
+function getInitialBoardDimensions() {
+  let navbarHeight = document.getElementById("navbarDiv").clientHeight || 50;
+  let legendHeight = document.getElementById("legendBar") ? document.getElementById("legendBar").clientHeight : 28;
+  let availableHeight = Math.max(280, document.documentElement.clientHeight - navbarHeight - legendHeight - 6);
+  let gridArea = document.getElementById("gridArea");
+  let availableWidth = Math.max(300, gridArea ? gridArea.clientWidth : document.documentElement.clientWidth);
+
+  return {
+    height: Math.max(10, Math.floor(availableHeight / 28)),
+    width: Math.max(10, Math.floor(availableWidth / 25))
+  };
+}
+
+let dimensions = getInitialBoardDimensions();
+let newBoard = new Board(dimensions.height, dimensions.width)
 window.__board = newBoard;
 newBoard.initialise();
 
@@ -1692,7 +1820,7 @@ window.onkeyup = (e) => {
   newBoard.keyDown = false;
 }
 
-},{"./animations/animationController":1,"./animations/launchAnimations":2,"./animations/launchInstantAnimations":3,"./animations/mazeGenerationAnimations":4,"./getDistance":6,"./mazeAlgorithms/otherMaze":7,"./mazeAlgorithms/otherOtherMaze":8,"./mazeAlgorithms/recursiveDivisionMaze":9,"./mazeAlgorithms/simpleDemonstration":10,"./mazeAlgorithms/stairDemonstration":11,"./mazeAlgorithms/weightsDemonstration":12,"./node":13,"./pathfindingAlgorithms/astar":14,"./pathfindingAlgorithms/bidirectional":15,"./pathfindingAlgorithms/unweightedSearchAlgorithm":16,"./pathfindingAlgorithms/weightedSearchAlgorithm":17,"./utils/aiExplain":18,"./utils/algorithmDescriptions":19,"./utils/algorithmModal":20,"./utils/explanationTemplates":21,"./utils/historyStorage":23,"./utils/historyUI":24,"./utils/runSerializer":25,"./utils/weightImpactAnalyzer":26}],6:[function(require,module,exports){
+},{"./animations/animationController":1,"./animations/launchAnimations":2,"./animations/launchInstantAnimations":3,"./animations/mazeGenerationAnimations":4,"./getDistance":6,"./mazeAlgorithms/otherMaze":7,"./mazeAlgorithms/otherOtherMaze":8,"./mazeAlgorithms/recursiveDivisionMaze":9,"./mazeAlgorithms/simpleDemonstration":10,"./mazeAlgorithms/stairDemonstration":11,"./mazeAlgorithms/weightsDemonstration":12,"./node":13,"./pathfindingAlgorithms/astar":14,"./pathfindingAlgorithms/bidirectional":15,"./pathfindingAlgorithms/unweightedSearchAlgorithm":16,"./pathfindingAlgorithms/weightedSearchAlgorithm":17,"./utils/aiExplain":18,"./utils/algorithmDescriptions":19,"./utils/algorithmModal":20,"./utils/explanationTemplates":21,"./utils/historyUI":24,"./utils/weightImpactAnalyzer":26}],6:[function(require,module,exports){
 function getDistance(nodeOne, nodeTwo) {
   let currentCoordinates = nodeOne.id.split("-");
   let targetCoordinates = nodeTwo.id.split("-");
@@ -3873,18 +4001,17 @@ function countWeightsInPath(board) {
 }
 
 function requestAIExplanation(board, visitedCount, pathLength) {
-  var container = document.getElementById("ai-explanation-container");
   var loading = document.getElementById("ai-explanation-loading");
   var textDiv = document.getElementById("ai-explanation-text");
 
-  if (!container || !loading || !textDiv) {
+  if (!loading || !textDiv) {
     console.warn("[AI] Missing DOM elements for AI explanation");
     return;
   }
 
-  container.classList.remove("hidden");
   loading.classList.remove("hidden");
   textDiv.textContent = "";
+  if (board && board.activateInsightTab) board.activateInsightTab();
 
   var digest = buildRunDigest(board, visitedCount, pathLength);
   console.log("[AI] Sending digest:", digest);
@@ -3905,21 +4032,23 @@ function requestAIExplanation(board, visitedCount, pathLength) {
     .then(function (data) {
       loading.classList.add("hidden");
       textDiv.textContent = data.explanation || "No explanation available.";
+      if (board && board.activateInsightTab) board.activateInsightTab();
       console.log("[AI] Explanation received (source: " + data.source + ")");
     })
     .catch(function (error) {
       loading.classList.add("hidden");
       textDiv.textContent = "The algorithm visited " + visitedCount +
         " nodes and found a path of " + pathLength + " steps.";
+      if (board && board.activateInsightTab) board.activateInsightTab();
       console.error("[AI] Error:", error);
     });
 }
 
 function hideAIExplanation() {
-  var container = document.getElementById("ai-explanation-container");
-  if (container) {
-    container.classList.add("hidden");
-  }
+  var loading = document.getElementById("ai-explanation-loading");
+  var textDiv = document.getElementById("ai-explanation-text");
+  if (loading) loading.classList.add("hidden");
+  if (textDiv) textDiv.textContent = "";
 }
 
 module.exports = {
@@ -4548,34 +4677,33 @@ function formatAlgorithmName(algo) {
   return names[algo] || algo;
 }
 
-function renderHistoryDropdown(board) {
-  var dropdown = document.getElementById("historyDropdown");
-  if (!dropdown) {
-    console.warn("[History UI] Dropdown element not found");
+function renderHistoryList(board) {
+  var container = document.getElementById("historyList");
+  if (!container) {
+    console.warn("[History UI] historyList element not found");
     return;
   }
 
   var runs = historyStorage.loadRuns();
-  dropdown.innerHTML = "";
+  container.innerHTML = "";
 
   if (runs.length === 0) {
-    var emptyLi = document.createElement("li");
-    emptyLi.className = "history-empty";
-    emptyLi.textContent = "No saved runs yet. Click 'Visualize!' to create one.";
-    dropdown.appendChild(emptyLi);
+    var emptyState = document.createElement("div");
+    emptyState.className = "history-empty";
+    emptyState.textContent = "No saved runs yet. Click 'Visualize!' to create one.";
+    container.appendChild(emptyState);
     return;
   }
 
   for (var i = 0; i < runs.length; i++) {
     var run = runs[i];
-    var item = createHistoryItem(run, board);
-    dropdown.appendChild(item);
+    container.appendChild(createHistoryItem(run, board));
   }
 
-  var clearAllLi = document.createElement("li");
-  clearAllLi.className = "history-clear-all";
-  clearAllLi.innerHTML = '<button id="clearAllHistoryBtn">Clear All History</button>';
-  dropdown.appendChild(clearAllLi);
+  var clearAll = document.createElement("div");
+  clearAll.className = "history-clear-all";
+  clearAll.innerHTML = '<button id="clearAllHistoryBtn" type="button">Clear All History</button>';
+  container.appendChild(clearAll);
 
   var clearBtn = document.getElementById("clearAllHistoryBtn");
   if (clearBtn) {
@@ -4584,15 +4712,15 @@ function renderHistoryDropdown(board) {
       e.stopPropagation();
       if (confirm("Delete all run history? This cannot be undone.")) {
         historyStorage.clearHistory();
-        renderHistoryDropdown(board);
+        renderHistoryList(board);
       }
     };
   }
 }
 
 function createHistoryItem(run, board) {
-  var li = document.createElement("li");
-  li.className = "history-item";
+  var item = document.createElement("div");
+  item.className = "history-item";
 
   var algoName = formatAlgorithmName(run.settings ? run.settings.algorithm : "unknown");
   var result = run.result || {};
@@ -4606,51 +4734,42 @@ function createHistoryItem(run, board) {
     summary = "No path found";
   }
 
-  li.innerHTML =
+  item.innerHTML =
     '<div class="history-item-header">' +
     '<span class="history-item-name">' + algoName + '</span>' +
     '<span class="history-item-time">' + formatTimestamp(run.timestamp) + '</span>' +
     '</div>' +
     '<div class="history-item-summary">' + summary + '</div>' +
     '<div class="history-item-actions">' +
-    '<button class="load-btn" data-run-id="' + run.id + '">Load</button>' +
-    '<button class="replay-btn" data-run-id="' + run.id + '">Replay</button>' +
-    '<button class="delete-btn" data-run-id="' + run.id + '">Delete</button>' +
+    '<button class="load-btn" data-run-id="' + run.id + '" type="button">Load</button>' +
+    '<button class="replay-btn" data-run-id="' + run.id + '" type="button">Replay</button>' +
+    '<button class="delete-btn" data-run-id="' + run.id + '" type="button">Delete</button>' +
     '</div>';
 
-  var loadBtn = li.querySelector(".load-btn");
-  var replayBtn = li.querySelector(".replay-btn");
-  var deleteBtn = li.querySelector(".delete-btn");
+  var loadBtn = item.querySelector(".load-btn");
+  var replayBtn = item.querySelector(".replay-btn");
+  var deleteBtn = item.querySelector(".delete-btn");
 
   loadBtn.onclick = function (e) {
     e.preventDefault();
     e.stopPropagation();
     loadRun(run, board, false);
-    closeDropdown();
   };
 
   replayBtn.onclick = function (e) {
     e.preventDefault();
     e.stopPropagation();
     loadRun(run, board, true);
-    closeDropdown();
   };
 
   deleteBtn.onclick = function (e) {
     e.preventDefault();
     e.stopPropagation();
     historyStorage.deleteRun(run.id);
-    renderHistoryDropdown(board);
+    renderHistoryList(board);
   };
 
-  return li;
-}
-
-function closeDropdown() {
-  var historyButton = document.getElementById("historyButton");
-  if (historyButton && historyButton.parentElement) {
-    historyButton.parentElement.classList.remove("open");
-  }
+  return item;
 }
 
 function loadRun(run, board, autoReplay) {
@@ -4709,7 +4828,7 @@ function loadRun(run, board, autoReplay) {
     var speedText = board.speed.charAt(0).toUpperCase() + board.speed.slice(1);
     var speedElement = document.getElementById("adjustSpeed");
     if (speedElement) {
-      speedElement.textContent = "Speed: " + speedText;
+      speedElement.innerHTML = "Speed: " + speedText + '<span class="caret"></span>';
     }
 
     var slider = document.getElementById("weightSlider");
@@ -4719,6 +4838,8 @@ function loadRun(run, board, autoReplay) {
 
     board.changeStartNodeImages();
   }
+
+  renderHistoryList(board);
 
   console.log("[History] Run loaded successfully");
 
@@ -4733,29 +4854,14 @@ function loadRun(run, board, autoReplay) {
 }
 
 function initHistoryUI(board) {
-  var historyButton = document.getElementById("historyButton");
-
-  if (historyButton) {
-    historyButton.addEventListener("click", function () {
-      renderHistoryDropdown(board);
-    });
-
-    var parent = historyButton.parentElement;
-    if (parent) {
-      parent.addEventListener("show.bs.dropdown", function () {
-        renderHistoryDropdown(board);
-      });
-    }
-  }
-
-  renderHistoryDropdown(board);
-
+  renderHistoryList(board);
   console.log("[History UI] Initialized");
 }
 
 module.exports = {
   initHistoryUI: initHistoryUI,
-  renderHistoryDropdown: renderHistoryDropdown,
+  renderHistoryList: renderHistoryList,
+  renderHistoryDropdown: renderHistoryList,
   loadRun: loadRun
 };
 
