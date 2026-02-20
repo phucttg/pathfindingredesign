@@ -11,76 +11,67 @@
   <div id='navbarDiv'>
     <nav class="navbar navbar-inverse">
       <div class="container-fluid">
-        <div class="navbar-header">
-          <a id="refreshButton" class="navbar-brand" href="#">Pathfinding Visualizer</a>
+        <div class="navbar-zone navbar-zone-brand">
+          <div class="navbar-header">
+            <a id="refreshButton" class="navbar-brand" href="#">Pathfinding Visualizer</a>
+          </div>
         </div>
 
-        <ul class="nav navbar-nav navbar-primary">
-          <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Algorithms
-              <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              <li id='startButtonDijkstra'><a href="#">Dijkstra's Algorithm</a></li>
-              <li id='startButtonAStar2'><a href="#">A* Search</a></li>
-              <li id='startButtonGreedy'><a href="#">Greedy Best-first Search</a></li>
-              <li id='startButtonAStar'><a href="#">Swarm Algorithm</a></li>
-              <li id='startButtonAStar3'><a href="#">Convergent Swarm Algorithm</a></li>
-              <li id='startButtonBidirectional'><a href="#">Bidirectional Swarm Algorithm</a></li>
-              <li id='startButtonBFS'><a href="#">Breadth-first Search</a></li>
-              <li id='startButtonDFS'><a href="#">Depth-first Search</a></li>
-            </ul>
-          </li>
+        <div class="navbar-zone navbar-zone-config">
+          <ul class="nav navbar-nav navbar-primary">
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Algorithms
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li id='startButtonDijkstra'><a href="#">Dijkstra's Algorithm</a></li>
+                <li id='startButtonAStar2'><a href="#">A* Search</a></li>
+                <li id='startButtonGreedy'><a href="#">Greedy Best-first Search</a></li>
+                <li id='startButtonAStar'><a href="#">Swarm Algorithm</a></li>
+                <li id='startButtonAStar3'><a href="#">Convergent Swarm Algorithm</a></li>
+                <li id='startButtonBidirectional'><a href="#">Bidirectional Swarm Algorithm</a></li>
+                <li id='startButtonBFS'><a href="#">Breadth-first Search</a></li>
+                <li id='startButtonDFS'><a href="#">Depth-first Search</a></li>
+              </ul>
+            </li>
 
-          <li id='startButtonStart'>
-            <button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize!</button>
-          </li>
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Mazes
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li id='startButtonCreateMazeTwo'><a href="#">Recursive Division</a></li>
+                <li id='startButtonCreateMazeThree'><a href="#">Recursive Division (vertical skew)</a></li>
+                <li id='startButtonCreateMazeFour'><a href="#">Recursive Division (horizontal skew)</a></li>
+                <li id='startButtonCreateMazeOne'><a href="#">Basic Random Maze</a></li>
+                <li id='startButtonCreateMazeWeights'><a href="#">Basic Weight Maze</a></li>
+                <li id='startStairDemonstration'><a href="#">Simple Stair Pattern</a></li>
+              </ul>
+            </li>
 
-          <li id="animationControls" class="hidden">
-            <button id="pauseResumeBtn" class="btn btn-default navbar-btn" type="button">
-              <span class="glyphicon glyphicon-pause"></span> Pause
-            </button>
-            <button id="stepForwardBtn" class="btn btn-default navbar-btn" type="button">
-              <span class="glyphicon glyphicon-step-forward"></span> Step
-            </button>
-            <span id="animationProgress" class="navbar-text" style="margin-left:8px;color:#666;font-size:12px;"></span>
-          </li>
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Settings
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li id='startButtonClearBoard'><a href="#">Clear Board</a></li>
+                <li id='startButtonClearWalls'><a href="#">Clear Walls &amp; Weights</a></li>
+                <li id='startButtonClearPath'><a href="#">Clear Path</a></li>
+              </ul>
+            </li>
 
-          <li class="dropdown">
-            <a id="adjustSpeed" class="dropdown-toggle" data-toggle="dropdown" href="#">Speed: Fast
-              <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              <li id='adjustFast'><a href="#">Fast</a></li>
-              <li id='adjustAverage'><a href="#">Average</a></li>
-              <li id='adjustSlow'><a href="#">Slow</a></li>
-            </ul>
-          </li>
+            <li id='startButtonStart'>
+              <button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize!</button>
+            </li>
+          </ul>
+        </div>
 
-          <li id="explanationToggle" class="navbar-button">
-            <button id="toggleSidebarBtn" class="btn btn-default navbar-btn" type="button" title="Toggle sidebar">
-              <span class="glyphicon glyphicon-menu-hamburger"></span>
-            </button>
-          </li>
-        </ul>
-
-        <ul class="nav navbar-nav navbar-right navbar-secondary">
-          <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-              <span class="glyphicon glyphicon-cog"></span> <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              <li id='startButtonCreateMazeTwo'><a href="#">Recursive Division</a></li>
-              <li id='startButtonCreateMazeThree'><a href="#">Recursive Division (vertical skew)</a></li>
-              <li id='startButtonCreateMazeFour'><a href="#">Recursive Division (horizontal skew)</a></li>
-              <li id='startButtonCreateMazeOne'><a href="#">Basic Random Maze</a></li>
-              <li id='startButtonCreateMazeWeights'><a href="#">Basic Weight Maze</a></li>
-              <li id='startStairDemonstration'><a href="#">Simple Stair Pattern</a></li>
-              <li class="divider"></li>
-              <li id='startButtonClearBoard'><a href="#">Clear Board</a></li>
-              <li id='startButtonClearWalls'><a href="#">Clear Walls &amp; Weights</a></li>
-              <li id='startButtonClearPath'><a href="#">Clear Path</a></li>
-            </ul>
-          </li>
-        </ul>
+        <div class="navbar-zone navbar-zone-utility">
+          <ul class="nav navbar-nav navbar-secondary">
+            <li id="explanationToggle" class="navbar-button">
+              <button id="toggleSidebarBtn" class="btn btn-default navbar-btn" type="button" title="Toggle sidebar">
+                <span class="glyphicon glyphicon-menu-hamburger"></span>
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
     </nav>
   </div>
@@ -127,10 +118,26 @@
           </div>
         </div>
 
-        <div class="sidebar-section">
+        <div class="sidebar-section controls-history-section">
           <h5 class="sidebar-section-title">History</h5>
           <div id="historyList">
             <div class="history-empty">No saved runs yet.</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section sidebar-legend-section">
+          <h5 class="sidebar-section-title">Legend</h5>
+          <div class="sidebar-legend-grid">
+            <div class="sidebar-legend-item"><span class="legend-swatch start"></span><span>Start</span></div>
+            <div class="sidebar-legend-item"><span class="legend-swatch wall-static"></span><span>Wall</span></div>
+            <div class="sidebar-legend-item"><span class="legend-swatch target"></span><span>Target</span></div>
+            <div class="sidebar-legend-item"><span class="legend-swatch unvisited"></span><span>Unvisited</span></div>
+            <div class="sidebar-legend-item"><span class="legend-swatch borderlessWeight"></span><span>Weight</span>
+            </div>
+            <div class="sidebar-legend-item"><span class="legend-swatch visited-static"></span><span>Visited</span>
+            </div>
+            <div class="sidebar-legend-item"><span class="legend-swatch shortest-path-static"></span><span>Path</span>
+            </div>
           </div>
         </div>
       </div>
@@ -141,7 +148,7 @@
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Current Step</h5>
+          <h5 class="sidebar-section-title">Current Event</h5>
           <div id="stepNumber" class="metric">—</div>
         </div>
 
@@ -206,10 +213,10 @@
     </aside>
 
     <main id="gridArea">
-      <div id="legendBar">
+      <div id="legendBar" class="legend-spacer" aria-hidden="true">
         <span class="legend-item"><span class="legend-swatch start"></span>Start</span>
         <span class="legend-item"><span class="legend-swatch target"></span>Target</span>
-        <span class="legend-item" id="weightLegend"><span class="legend-swatch borderlessWeight"></span>Weight</span>
+        <!-- <span class="legend-item" id="weightLegend"><span class="legend-swatch borderlessWeight"></span>Weight</span> -->
         <span class="legend-item"><span class="legend-swatch unvisited"></span>Unvisited</span>
         <span class="legend-item"><span class="legend-swatch visited-static"></span>Visited</span>
         <span class="legend-item"><span class="legend-swatch shortest-path-static"></span>Path</span>
@@ -224,6 +231,29 @@
         <span><strong>Path Cost:</strong> <span id="pathCost">0</span></span>
         <span><strong>Length:</strong> <span id="pathLength">0</span> nodes</span>
         <span><strong>Visited:</strong> <span id="visitedCount">0</span> nodes</span>
+      </div>
+
+      <div id="playbackPod" class="playback-pod">
+        <div class="dropdown dropup playback-speed-dropdown">
+          <button id="adjustSpeed" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+            Speed: Fast <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li id='adjustFast'><a href="#">Fast</a></li>
+            <li id='adjustAverage'><a href="#">Average</a></li>
+            <li id='adjustSlow'><a href="#">Slow</a></li>
+          </ul>
+        </div>
+
+        <div id="animationControls" class="hidden">
+          <button id="pauseResumeBtn" class="btn btn-default" type="button">
+            <span class="glyphicon glyphicon-pause"></span> Pause
+          </button>
+          <button id="stepForwardBtn" class="btn btn-default" type="button">
+            <span class="glyphicon glyphicon-step-forward"></span> Step
+          </button>
+          <span id="animationProgress" class="pod-progress"></span>
+        </div>
       </div>
     </main>
   </div>
