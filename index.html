@@ -14,7 +14,8 @@
         <div class="navbar-header">
           <a id="refreshButton" class="navbar-brand" href="#">Pathfinding Visualizer</a>
         </div>
-        <ul class="nav navbar-nav">
+
+        <ul class="nav navbar-nav navbar-primary">
           <li class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Algorithms
               <span class="caret"></span></a>
@@ -29,25 +30,11 @@
               <li id='startButtonDFS'><a href="#">Depth-first Search</a></li>
             </ul>
           </li>
-          <li id="explanationToggle" class="navbar-button">
-            <button id="toggleExplanationBtn" class="btn btn-default navbar-btn">
-              <span class="glyphicon glyphicon-info-sign"></span> Step Explanations
-            </button>
+
+          <li id='startButtonStart'>
+            <button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize!</button>
           </li>
-          <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Mazes &amp; Patterns
-              <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              <li id='startButtonCreateMazeTwo'><a href="#">Recursive Division</a></li>
-              <li id='startButtonCreateMazeThree'><a href="#">Recursive Division (vertical skew)</a></li>
-              <li id='startButtonCreateMazeFour'><a href="#">Recursive Division (horizontal skew)</a></li>
-              <li id='startButtonCreateMazeOne'><a href="#">Basic Random Maze</a></li>
-              <li id='startButtonCreateMazeWeights'><a href="#">Basic Weight Maze</a></li>
-              <li id='startStairDemonstration'><a href="#">Simple Stair Pattern</a></li>
-            </ul>
-          </li>
-          <li id='startButtonStart'><button id="actualStartButton" class="btn btn-default navbar-btn"
-              type="button">Visualize!</button></li>
+
           <li id="animationControls" class="hidden">
             <button id="pauseResumeBtn" class="btn btn-default navbar-btn" type="button">
               <span class="glyphicon glyphicon-pause"></span> Pause
@@ -57,9 +44,7 @@
             </button>
             <span id="animationProgress" class="navbar-text" style="margin-left:8px;color:#666;font-size:12px;"></span>
           </li>
-          <li id='startButtonClearBoard'><a href="#">Clear Board</a></li>
-          <li id='startButtonClearWalls'><a href="#">Clear Walls &amp; Weights</a></li>
-          <li id='startButtonClearPath'><a href="#">Clear Path</a></li>
+
           <li class="dropdown">
             <a id="adjustSpeed" class="dropdown-toggle" data-toggle="dropdown" href="#">Speed: Fast
               <span class="caret"></span></a>
@@ -69,24 +54,37 @@
               <li id='adjustSlow'><a href="#">Slow</a></li>
             </ul>
           </li>
-          <li class="dropdown">
-            <a id="historyButton" class="dropdown-toggle" data-toggle="dropdown" href="#">
-              <span class="glyphicon glyphicon-time"></span> History
-              <span class="caret"></span>
-            </a>
-            <ul id="historyDropdown" class="dropdown-menu history-menu">
-              <li class="history-empty">No saved runs yet</li>
-            </ul>
+
+          <li id="explanationToggle" class="navbar-button">
+            <button id="toggleSidebarBtn" class="btn btn-default navbar-btn" type="button" title="Toggle sidebar">
+              <span class="glyphicon glyphicon-menu-hamburger"></span>
+            </button>
           </li>
-          <li class="navbar-weight-control">
-            <span class="weight-label">Weight:</span>
-          <input type="range" id="weightSlider" min="0" max="50" value="15">
-            <span id="weightValue">15</span>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right navbar-secondary">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+              <span class="glyphicon glyphicon-cog"></span> <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li id='startButtonCreateMazeTwo'><a href="#">Recursive Division</a></li>
+              <li id='startButtonCreateMazeThree'><a href="#">Recursive Division (vertical skew)</a></li>
+              <li id='startButtonCreateMazeFour'><a href="#">Recursive Division (horizontal skew)</a></li>
+              <li id='startButtonCreateMazeOne'><a href="#">Basic Random Maze</a></li>
+              <li id='startButtonCreateMazeWeights'><a href="#">Basic Weight Maze</a></li>
+              <li id='startStairDemonstration'><a href="#">Simple Stair Pattern</a></li>
+              <li class="divider"></li>
+              <li id='startButtonClearBoard'><a href="#">Clear Board</a></li>
+              <li id='startButtonClearWalls'><a href="#">Clear Walls &amp; Weights</a></li>
+              <li id='startButtonClearPath'><a href="#">Clear Path</a></li>
+            </ul>
           </li>
         </ul>
       </div>
     </nav>
   </div>
+
   <div id="tutorial">
     <h3>Welcome to Pathfinding Visualizer!</h3>
     <h6>This short tutorial will walk you through all of the features of this application.</h6>
@@ -97,113 +95,140 @@
     <button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button>
     <button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>
   </div>
-  <div id='mainGrid'>
-    <div id='mainText'>
-      <ul>
-        <li>
-          <div class="start"></div>Start Node
-        </li>
-        <li>
-          <div class="target"></div>Target Node
-        </li>
-        <li id="weightLegend">
-          <div class="borderlessWeight"></div>Weight Node
-        </li>
-        <li>
-          <div class="unvisited"></div>Unvisited Node
-        </li>
-        <li>
-          <div class="visited"></div>Visited Nodes
-        </li>
-        <li>
-          <div class="shortest-path"></div>Shortest-path Node
-        </li>
-        <li>
-          <div class="wall"></div>Wall Node
-        </li>
-      </ul>
-    </div>
-    <div id="algorithmDescriptor">Pick an algorithm and visualize it!</div>
-    <p id="pathCostDisplay" class="hidden">
-      <strong>Path Cost:</strong> <span id="pathCost">0</span> |
-      <strong>Length:</strong> <span id="pathLength">0</span> nodes |
-      <strong>Visited:</strong> <span id="visitedCount">0</span> nodes
-    </p>
-    <div id="weightImpactDisplay" class="hidden">
-      <div class="weight-impact-header">
-        <span class="icon">💡</span>
-        <strong>Why This Path?</strong>
-      </div>
-      <p id="weightImpactText"></p>
-    </div>
-    <table id='board' />
-    <!-- AI Explanation Section -->
-    <div id="ai-explanation-container" class="hidden">
-      <div id="ai-explanation-loading" class="hidden">
-        <span class="loading-spinner"></span>
-        <span>Đang tạo giải thích...</span>
-      </div>
-      <div id="ai-explanation-text"></div>
-    </div>
-  </div>
-  <div id="explanationPanel" class="explanation-panel">
-    <div class="explanation-header">
-      <h4>Step-by-Step Reasoning</h4>
-      <button id="closeExplanationBtn" class="close-btn">&times;</button>
-    </div>
 
-    <div class="explanation-content">
-      <div class="section">
-        <h5>Current Step</h5>
-        <div id="stepNumber" class="metric">—</div>
+  <div id="appLayout">
+    <aside id="sidebar" class="sidebar-open">
+      <div class="sidebar-tabs">
+        <button id="tabControls" class="sidebar-tab active" type="button">Controls</button>
+        <button id="tabInsight" class="sidebar-tab" type="button">Insight</button>
       </div>
 
-      <div class="section">
-        <h5>Current Node</h5>
-        <div id="currentNodeInfo" class="node-info">
-          <div class="node-coords">—</div>
-          <div class="node-costs">
-            <span id="gLabel" class="cost-label">g:</span> <span id="gCost">—</span>
-            <span id="hLabel" class="cost-label">h:</span> <span id="hCost">—</span>
-            <span id="fLabel" class="cost-label">f:</span> <span id="fCost">—</span>
+      <div id="panelControls" class="sidebar-panel active">
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Algorithm</h5>
+          <div id="algorithmDescriptor">Pick an algorithm and visualize it!</div>
+          <button id="algoInfoBtn" class="btn btn-xs btn-link" type="button">More Info</button>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Weight Value</h5>
+          <div class="weight-control">
+            <input type="range" id="weightSlider" min="0" max="50" value="15">
+            <span id="weightValue">15</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Actions</h5>
+          <div class="sidebar-actions">
+            <button id="sidebarClearPath" class="btn btn-sm btn-default" type="button">Clear Path</button>
+            <button id="sidebarClearWalls" class="btn btn-sm btn-default" type="button">Clear Walls</button>
+            <button id="sidebarClearBoard" class="btn btn-sm btn-default" type="button">Clear Board</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">History</h5>
+          <div id="historyList">
+            <div class="history-empty">No saved runs yet.</div>
           </div>
         </div>
       </div>
 
-      <div class="section">
-        <h5>What's Happening?</h5>
-        <div id="explanationText" class="explanation-text">
-          No algorithm running. Click "Visualize Algorithm!" to start.
+      <div id="panelInsight" class="sidebar-panel">
+        <div id="insightPlaceholder" class="insight-placeholder">
+          <p>Run an algorithm to see step-by-step analysis here.</p>
         </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Current Step</h5>
+          <div id="stepNumber" class="metric">—</div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Current Node</h5>
+          <div id="currentNodeInfo" class="node-info">
+            <div class="node-coords">—</div>
+            <div class="node-costs">
+              <span id="gLabel" class="cost-label">g:</span> <span id="gCost">—</span>
+              <span id="hLabel" class="cost-label">h:</span> <span id="hCost">—</span>
+              <span id="fLabel" class="cost-label">f:</span> <span id="fCost">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">What's Happening?</h5>
+          <div id="explanationText" class="explanation-text">
+            No algorithm running.
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Algorithm Metrics</h5>
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label">Frontier Size:</span>
+              <span id="frontierSize">—</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Visited Count:</span>
+              <span id="visitedCountLive">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Cost Model</h5>
+          <div class="cost-model-info">
+            <p><strong>Edge Cost</strong> = Base (1) + Turn Penalty + Weight</p>
+            <ul class="cost-components">
+              <li><span class="component-label">Straight:</span> +0</li>
+              <li><span class="component-label">90° turn:</span> +1</li>
+              <li><span class="component-label">180° turn:</span> +2</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">Why This Path?</h5>
+          <div id="weightImpactText" class="insight-text"></div>
+        </div>
+
+        <div class="sidebar-section">
+          <h5 class="sidebar-section-title">AI Summary</h5>
+          <div id="ai-explanation-loading" class="hidden">
+            <span class="loading-spinner"></span> Generating explanation...
+          </div>
+          <div id="ai-explanation-text" class="insight-text"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="gridArea">
+      <div id="legendBar">
+        <span class="legend-item"><span class="legend-swatch start"></span>Start</span>
+        <span class="legend-item"><span class="legend-swatch target"></span>Target</span>
+        <span class="legend-item" id="weightLegend"><span class="legend-swatch borderlessWeight"></span>Weight</span>
+        <span class="legend-item"><span class="legend-swatch unvisited"></span>Unvisited</span>
+        <span class="legend-item"><span class="legend-swatch visited-static"></span>Visited</span>
+        <span class="legend-item"><span class="legend-swatch shortest-path-static"></span>Path</span>
+        <span class="legend-item"><span class="legend-swatch wall-static"></span>Wall</span>
       </div>
 
-      <div class="section">
-        <h5>Algorithm Metrics</h5>
-        <div class="metrics-grid">
-          <div class="metric-item">
-            <span class="metric-label">Frontier Size:</span>
-            <span id="frontierSize">—</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">Visited Count:</span>
-            <span id="visitedCountLive">—</span>
-          </div>
-        </div>
+      <div id="gridWrapper">
+        <table id='board'></table>
       </div>
-      <div class="section">
-        <h5>Cost Model</h5>
-        <div class="cost-model-info">
-          <p><strong>Edge Cost</strong> = Base (1) + Turn Penalty + Weight</p>
-          <ul class="cost-components">
-            <li><span class="component-label">Straight:</span> +0</li>
-            <li><span class="component-label">90° turn:</span> +1</li>
-            <li><span class="component-label">180° turn:</span> +2</li>
-          </ul>
-        </div>
+
+      <div id="resultsBar" class="hidden">
+        <span><strong>Path Cost:</strong> <span id="pathCost">0</span></span>
+        <span><strong>Length:</strong> <span id="pathLength">0</span> nodes</span>
+        <span><strong>Visited:</strong> <span id="visitedCount">0</span> nodes</span>
       </div>
-    </div>
+    </main>
   </div>
 </body>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src='/public/browser/bundle.js'></script>
