@@ -1203,10 +1203,8 @@ Board.prototype.toggleButtons = function () {
       if (impactDisplay) {
         impactDisplay.classList.add("hidden");
       }
-      let navbarHeight = document.getElementById("navbarDiv").clientHeight;
-      let textHeight = document.getElementById("mainText").clientHeight + document.getElementById("algorithmDescriptor").clientHeight;
-      let height = Math.floor((document.documentElement.clientHeight - navbarHeight - textHeight) / 28);
-      let width = Math.floor(document.documentElement.clientWidth / 25);
+      let height = this.height;
+      let width = this.width;
       let start = Math.floor(height / 2).toString() + "-" + Math.floor(width / 4).toString();
       let target = Math.floor(height / 2).toString() + "-" + Math.floor(3 * width / 4).toString();
 
@@ -1345,11 +1343,39 @@ Board.prototype.toggleButtons = function () {
 
 }
 
-let navbarHeight = $("#navbarDiv").height();
-let textHeight = $("#mainText").height() + $("#algorithmDescriptor").height();
-let height = Math.floor(($(document).height() - navbarHeight - textHeight) / 28);
-let width = Math.floor($(document).width() / 25);
-let newBoard = new Board(height, width)
+const CELL_WIDTH = 25;
+const CELL_HEIGHT = 25;
+const MIN_ROWS = 10;
+const MIN_COLS = 10;
+
+function getGridWrapperContentSize(wrapper) {
+  if (!wrapper) return { width: 0, height: 0 };
+  let styles = window.getComputedStyle(wrapper);
+  let paddingX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+  let paddingY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+  return {
+    width: Math.max(0, wrapper.clientWidth - paddingX),
+    height: Math.max(0, wrapper.clientHeight - paddingY)
+  };
+}
+
+function getInitialBoardDimensions() {
+  let wrapper = document.getElementById("gridWrapper");
+  let contentSize = getGridWrapperContentSize(wrapper);
+  let navbarHeight = document.getElementById("navbarDiv") ? document.getElementById("navbarDiv").clientHeight : 50;
+  let legendHeight = document.getElementById("legendBar") ? document.getElementById("legendBar").clientHeight : 28;
+  let fallbackHeight = Math.max(MIN_ROWS * CELL_HEIGHT, document.documentElement.clientHeight - navbarHeight - legendHeight - 6);
+  let fallbackWidth = Math.max(MIN_COLS * CELL_WIDTH, document.documentElement.clientWidth);
+  let availableHeight = Math.max(MIN_ROWS * CELL_HEIGHT, contentSize.height || fallbackHeight);
+  let availableWidth = Math.max(MIN_COLS * CELL_WIDTH, contentSize.width || fallbackWidth);
+  return {
+    height: Math.max(MIN_ROWS, Math.floor(availableHeight / CELL_HEIGHT)),
+    width: Math.max(MIN_COLS, Math.floor(availableWidth / CELL_WIDTH))
+  };
+}
+
+let dimensions = getInitialBoardDimensions();
+let newBoard = new Board(dimensions.height, dimensions.width)
 window.__board = newBoard;
 newBoard.initialise();
 
