@@ -6,7 +6,9 @@
   "scripts": {
     "start": "nodemon server.js",
     "test": "node tests/weightImpactAnalyzer.test.js",
-    "watch": "watchify /home/clement/Documents/Fullstack_Academy/Projects/Pathfinding_Algorithms/public/browser/board.js -o /home/clement/Documents/Fullstack_Academy/Projects/Pathfinding_Algorithms/public/browser/bundle.js"
+    "build:client": "browserify public/browser/board.js -o public/browser/bundle.js",
+    "watch:client": "watchify public/browser/board.js -o public/browser/bundle.js -v",
+    "watch": "npm run watch:client"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +19,7 @@
     "helmet": "^8.1.0"
   },
   "devDependencies": {
-    "browserify": "^17.0.1"
+    "browserify": "^17.0.1",
+    "watchify": "^4.0.0"
   }
 }
