@@ -1794,16 +1794,35 @@ Board.prototype.toggleButtons = function () {
 
 }
 
+const CELL_WIDTH = 25;
+const CELL_HEIGHT = 25;
+const MIN_ROWS = 10;
+const MIN_COLS = 10;
+
+function getGridWrapperContentSize(wrapper) {
+  if (!wrapper) return { width: 0, height: 0 };
+  let styles = window.getComputedStyle(wrapper);
+  let paddingX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+  let paddingY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+  return {
+    width: Math.max(0, wrapper.clientWidth - paddingX),
+    height: Math.max(0, wrapper.clientHeight - paddingY)
+  };
+}
+
 function getInitialBoardDimensions() {
-  let navbarHeight = document.getElementById("navbarDiv").clientHeight || 50;
+  let wrapper = document.getElementById("gridWrapper");
+  let contentSize = getGridWrapperContentSize(wrapper);
+  let navbarHeight = document.getElementById("navbarDiv") ? document.getElementById("navbarDiv").clientHeight : 50;
   let legendHeight = document.getElementById("legendBar") ? document.getElementById("legendBar").clientHeight : 28;
-  let availableHeight = Math.max(280, document.documentElement.clientHeight - navbarHeight - legendHeight - 6);
-  let gridArea = document.getElementById("gridArea");
-  let availableWidth = Math.max(300, gridArea ? gridArea.clientWidth : document.documentElement.clientWidth);
+  let fallbackHeight = Math.max(MIN_ROWS * CELL_HEIGHT, document.documentElement.clientHeight - navbarHeight - legendHeight - 6);
+  let fallbackWidth = Math.max(MIN_COLS * CELL_WIDTH, document.documentElement.clientWidth);
+  let availableHeight = Math.max(MIN_ROWS * CELL_HEIGHT, contentSize.height || fallbackHeight);
+  let availableWidth = Math.max(MIN_COLS * CELL_WIDTH, contentSize.width || fallbackWidth);
 
   return {
-    height: Math.max(10, Math.floor(availableHeight / 28)),
-    width: Math.max(10, Math.floor(availableWidth / 25))
+    height: Math.max(MIN_ROWS, Math.floor(availableHeight / CELL_HEIGHT)),
+    width: Math.max(MIN_COLS, Math.floor(availableWidth / CELL_WIDTH))
   };
 }
 
