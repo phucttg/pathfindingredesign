@@ -409,8 +409,8 @@
 }*/
 
 #board{
-  border-collapse:collapse;
-  /*position: center*/
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 #mainText div {
@@ -424,8 +424,8 @@
 }
 
 #board {
-  margin-left: 5px;
-  margin-right: 5px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /*#tutorial {
@@ -439,7 +439,12 @@
 #board td{
   /*border: 1px solid rgb(175, 216, 248);*/
   width: 25px;
+  min-width: 25px;
+  max-width: 25px;
   height: 25px;
+  min-height: 25px;
+  max-height: 25px;
+  box-sizing: border-box;
 }
 
 #startButtonStart {
@@ -8086,11 +8091,13 @@ body.panel-open {
   overflow: auto;
   display: flex;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 6px 8px 110px;
 }
 
 #board {
+  flex: 0 0 auto;
+  width: max-content;
   margin: 0 auto;
 }
 
