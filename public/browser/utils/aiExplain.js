@@ -127,12 +127,14 @@ function requestAIExplanation(board, visitedCount, pathLength) {
   var loading = document.getElementById("ai-explanation-loading");
   var textDiv = document.getElementById("ai-explanation-text");
 
-  if (!container || !loading || !textDiv) {
+  if (!loading || !textDiv) {
     console.warn("[AI] Missing DOM elements for AI explanation");
     return;
   }
 
-  container.classList.remove("hidden");
+  if (container) {
+    container.classList.remove("hidden");
+  }
   loading.classList.remove("hidden");
   textDiv.textContent = "";
 
@@ -167,8 +169,16 @@ function requestAIExplanation(board, visitedCount, pathLength) {
 
 function hideAIExplanation() {
   var container = document.getElementById("ai-explanation-container");
+  var loading = document.getElementById("ai-explanation-loading");
+  var textDiv = document.getElementById("ai-explanation-text");
   if (container) {
     container.classList.add("hidden");
+  }
+  if (loading) {
+    loading.classList.add("hidden");
+  }
+  if (textDiv) {
+    textDiv.textContent = "";
   }
 }
 
