@@ -76,6 +76,37 @@ const ALGO_SELECTION_MAP = {
   }
 };
 
+const INSIGHT_TOOLTIP_COPY = {
+  "current-event": "Think of the code like reading a book. This number shows which step the algorithm is reading right now since the run started. A higher step means it had to think for longer.",
+  "current-node": "This is the algorithm's current standing spot. Like standing at an intersection, it is at this coordinate and looking around to decide where to go next.",
+  "g-cost": "How far you have already walked from the start to the current spot.",
+  "h-cost": "A bird's-eye estimate from where you are now to the goal. It is only a guess, not a guaranteed real path.",
+  "f-cost": "This is g + h: how tired your legs already are plus how far you still seem to be. The algorithm usually prefers the cell with the smallest f value.",
+  "swarm-score": "This is the score Swarm uses to compare cells. A lower score means the cell is more attractive to try first.",
+  "swarm-heuristic": "This is the estimated distance from the current cell to the goal, used to guide the search.",
+  "swarm-score-total": "Swarm ranks options with this total score. Smaller numbers are more likely to be chosen first.",
+  "happening": "This is like the algorithm's thought reader. It explains in plain words why it picked this cell and skipped others in that moment.",
+  "algorithm-metrics": "These metrics show how many backup options the algorithm still has and how many cells it has already checked.",
+  "frontier-size": "A list of next cells the algorithm has seen but has not committed to yet. Like restaurants you could turn into but are still considering.",
+  "visited-count": "The total number of cells the algorithm has actually stepped into and checked. Bigger numbers usually mean more wandering and lower efficiency.",
+  "cost-model": "This is the map's pricing rule. Going straight is cheap. Sharp turns add a penalty. Weighted cells are like swamp tiles and cost much more energy to cross.",
+  "why-this-path": "After reaching the goal, the algorithm looks back and explains why the highlighted path was the smarter and lower-cost choice.",
+  "ai-summary": "An AI watched the full run and rewrote it as simple, human-friendly sentences for you."
+};
+
+const COST_TOOLTIP_KEYS = {
+  default: {
+    gCostTooltip: "g-cost",
+    hCostTooltip: "h-cost",
+    fCostTooltip: "f-cost"
+  },
+  swarm: {
+    gCostTooltip: "swarm-score",
+    hCostTooltip: "swarm-heuristic",
+    fCostTooltip: "swarm-score-total"
+  }
+};
+
 function getSelectionByState(algorithm, heuristic) {
   if (algorithm === "swarm") {
     algorithm = "CLA";
@@ -134,12 +165,14 @@ function Board(height, width) {
   this.algoSelectPulseTimer = null;
   this.currentRunToken = null;
   this.runContext = null;
+  this.costTooltipMode = null;
 }
 
 Board.prototype.initialise = function () {
   this.createGrid();
   this.addEventListeners();
   this.initSidebar();
+  this.initInsightTooltips();
   mazeSelector.initSidebarMazeDropup(this);
   historyUI.initHistoryUI(this);
   this.bindNavInfoOnlyHandlers();
@@ -268,6 +301,73 @@ Board.prototype.setSidebarTab = function (tab) {
   insightPanel.classList.toggle("active", showInsight);
 };
 
+Board.prototype.applyInsightTooltipCopy = function (element, key) {
+  if (!element || !key) return;
+  var text = INSIGHT_TOOLTIP_COPY[key];
+  if (!text) return;
+  element.setAttribute("data-tooltip-key", key);
+  element.setAttribute("title", text);
+  element.setAttribute("aria-label", text);
+  element.setAttribute("data-original-title", text);
+};
+
+Board.prototype.syncCostTooltipsForAlgorithmMode = function (isSwarmOverride) {
+  var isSwarm = typeof isSwarmOverride === "boolean" ? isSwarmOverride : false;
+  if (typeof isSwarmOverride !== "boolean") {
+    var algoKey = algorithmDescriptions.getAlgorithmKey(this.currentAlgorithm, this.currentHeuristic);
+    isSwarm = algoKey === "swarm" || algoKey === "convergentSwarm";
+  }
+
+  var nextMode = isSwarm ? "swarm" : "default";
+  if (this.costTooltipMode === nextMode) return;
+  this.costTooltipMode = nextMode;
+
+  var map = COST_TOOLTIP_KEYS[nextMode];
+  var ids = Object.keys(map);
+  for (var i = 0; i < ids.length; i++) {
+    var id = ids[i];
+    var element = document.getElementById(id);
+    if (!element) continue;
+    this.applyInsightTooltipCopy(element, map[id]);
+  }
+
+  if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.tooltip) return;
+  var $costTooltips = window.jQuery("#gCostTooltip, #hCostTooltip, #fCostTooltip");
+  $costTooltips.each(function () {
+    var $el = window.jQuery(this);
+    if ($el.data("bs.tooltip")) {
+      $el.tooltip("hide");
+      $el.tooltip("fixTitle");
+    }
+  });
+};
+
+Board.prototype.initInsightTooltips = function () {
+  if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.tooltip) return;
+  var tooltipElements = document.querySelectorAll("[data-tooltip-key]");
+  if (!tooltipElements || !tooltipElements.length) return;
+
+  for (var i = 0; i < tooltipElements.length; i++) {
+    var key = tooltipElements[i].getAttribute("data-tooltip-key");
+    this.applyInsightTooltipCopy(tooltipElements[i], key);
+  }
+
+  var $tooltips = window.jQuery(tooltipElements);
+  $tooltips.tooltip("destroy");
+  $tooltips.tooltip({
+    container: "body",
+    placement: "auto right",
+    trigger: "hover focus click",
+    viewport: {
+      selector: "body",
+      padding: 8
+    },
+    template: '<div class="tooltip insight-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+  });
+
+  this.syncCostTooltipsForAlgorithmMode();
+};
+
 Board.prototype.activateControlsTab = function () {
   this.setSidebarTab("controls");
 };
@@ -313,6 +413,7 @@ Board.prototype.applyAlgorithmSelection = function (selection) {
   this.clearPath("clickedButton");
   this.changeStartNodeImages();
   this.setAlgorithmSelectionUI(selection.label);
+  this.syncCostTooltipsForAlgorithmMode();
 };
 
 Board.prototype.pulseAlgoSelectButton = function () {
@@ -513,6 +614,7 @@ Board.prototype.updateExplanationPanel = function (event) {
   var insightPlaceholder = document.getElementById("insightPlaceholder");
 
   if (!event) {
+    this.syncCostTooltipsForAlgorithmMode();
     if (insightPlaceholder) insightPlaceholder.classList.remove("hidden");
     document.getElementById("stepNumber").textContent = "—";
     document.getElementById("currentNodeInfo").querySelector(".node-coords").textContent = "—";
@@ -539,6 +641,7 @@ Board.prototype.updateExplanationPanel = function (event) {
 
   var algoKey = algorithmDescriptions.getAlgorithmKey(this.currentAlgorithm, this.currentHeuristic);
   var isSwarm = algoKey === "swarm" || algoKey === "convergentSwarm";
+  this.syncCostTooltipsForAlgorithmMode(isSwarm);
   var relaxNodeScore = null;
   if (isSwarm && event && event.t === "relax_neighbor" && event.to && this.nodes[event.to]) {
     relaxNodeScore = this.nodes[event.to].gScore;
