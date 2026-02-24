@@ -43,15 +43,111 @@
     </nav>
   </div>
 
-  <div id="tutorial">
-    <h3>Welcome to Pathfinding Visualizer!</h3>
-    <h6>This short tutorial will walk you through all of the features of this application.</h6>
-    <p>If you want to dive right in, feel free to press the "Skip Tutorial" button below. Otherwise, press "Next"!</p>
-    <div id="tutorialCounter">1/9</div>
-    <img id="mainTutorialImage" src="public/styling/c_icon.png">
-    <button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button>
-    <button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button>
-    <button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>
+  <div id="tutorialOverlay" class="tut-overlay" role="dialog" aria-modal="true"
+    aria-label="Pathfinding Visualizer onboarding">
+    <div class="tut-backdrop"></div>
+    <div class="tut-stage">
+      <div class="tut-progress">
+        <div id="tutProgressTrack" class="tut-progress-track" aria-hidden="true">
+          <span class="tut-progress-segment" data-step="0"></span>
+          <span class="tut-progress-segment" data-step="1"></span>
+          <span class="tut-progress-segment" data-step="2"></span>
+          <span class="tut-progress-segment" data-step="3"></span>
+          <span class="tut-progress-segment" data-step="4"></span>
+          <span class="tut-progress-segment" data-step="5"></span>
+          <span class="tut-progress-segment" data-step="6"></span>
+        </div>
+        <span class="tut-progress-label" id="tutProgressLabel">1 / 7</span>
+      </div>
+
+      <div id="tutSlideFrame" class="tut-slide-frame tut-direction-forward">
+        <div class="tut-illustration-wrap">
+          <div id="tutIllustration" class="tut-illustration" data-scene="welcome-ripple">
+            <div class="tut-scene scene-welcome-ripple is-active" data-scene="welcome-ripple">
+              <span class="tut-ring ring-1"></span>
+              <span class="tut-ring ring-2"></span>
+              <span class="tut-ring ring-3"></span>
+              <span class="tut-ring ring-4"></span>
+              <span class="tut-dot"></span>
+            </div>
+
+            <div class="tut-scene scene-grid-activation" data-scene="grid-activation">
+              <div class="tut-mini-grid">
+                <span class="grid-cell"></span><span class="grid-cell"></span><span class="grid-cell"></span><span
+                  class="grid-cell"></span><span class="grid-cell"></span>
+                <span class="grid-cell"></span><span class="grid-cell"></span><span class="grid-cell"></span><span
+                  class="grid-cell"></span><span class="grid-cell"></span>
+                <span class="grid-cell"></span><span class="grid-cell"></span><span class="grid-cell"></span><span
+                  class="grid-cell"></span><span class="grid-cell"></span>
+                <span class="grid-cell"></span><span class="grid-cell"></span><span class="grid-cell"></span><span
+                  class="grid-cell"></span><span class="grid-cell"></span>
+                <span class="grid-cell"></span><span class="grid-cell"></span><span class="grid-cell"></span><span
+                  class="grid-cell"></span><span class="grid-cell"></span>
+              </div>
+            </div>
+
+            <div class="tut-scene scene-algorithm-race" data-scene="algorithm-race">
+              <span class="tut-track tut-track-top"></span>
+              <span class="tut-track tut-track-bottom"></span>
+              <span class="tut-runner runner-top"></span>
+              <span class="tut-runner runner-bottom"></span>
+            </div>
+
+            <div class="tut-scene scene-obstacles" data-scene="obstacles">
+              <div class="tut-bricks">
+                <span class="brick"></span><span class="brick"></span><span class="brick"></span>
+                <span class="brick"></span><span class="brick"></span><span class="brick"></span>
+                <span class="brick"></span><span class="brick"></span><span class="brick"></span>
+              </div>
+              <span class="tut-weight-badge"></span>
+              <span class="tut-slider-line"></span>
+              <span class="tut-slider-knob"></span>
+            </div>
+
+            <div class="tut-scene scene-drag-recalc" data-scene="drag-recalc">
+              <span class="tut-endpoint endpoint-a">A</span>
+              <span class="tut-endpoint endpoint-b">B</span>
+              <span class="tut-arc-path"></span>
+              <span class="tut-drag-dot"></span>
+              <span class="tut-cursor"></span>
+            </div>
+
+            <div class="tut-scene scene-controls-ui" data-scene="controls-ui">
+              <div class="tut-controls-panel">
+                <span class="ctrl-toggle-track"></span>
+                <span class="ctrl-toggle-knob"></span>
+                <span class="ctrl-slider-track"></span>
+                <span class="ctrl-slider-fill"></span>
+                <span class="ctrl-slider-knob"></span>
+                <span class="ctrl-select"></span>
+                <span class="ctrl-dropdown"></span>
+              </div>
+            </div>
+
+            <div class="tut-scene scene-go-path" data-scene="go-path">
+              <span class="tut-go-start"></span>
+              <span class="tut-go-target"></span>
+              <span class="tut-go-trail"></span>
+              <span class="tut-go-pulse"></span>
+            </div>
+          </div>
+        </div>
+        <div class="tut-card">
+          <span id="tutChip" class="tut-chip">WELCOME</span>
+          <h2 id="tutTitle" class="tut-title">Pathfinding, Visualized</h2>
+          <p id="tutBody" class="tut-body">Watch algorithms think. See every decision. Understand why a path was
+            chosen.</p>
+        </div>
+      </div>
+
+      <div class="tut-nav">
+        <button id="tutSkip" class="tut-btn tut-btn-skip" type="button">Skip intro</button>
+        <div class="tut-nav-arrows">
+          <button id="tutPrev" class="tut-btn tut-btn-prev" type="button" disabled>Back</button>
+          <button id="tutNext" class="tut-btn tut-btn-next" type="button">Continue</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="mazeOnboardingOverlay" class="maze-modal-overlay hidden">
