@@ -224,45 +224,103 @@
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Current Event</h5>
+          <h5 class="sidebar-section-title">Current Event
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="current-event"
+              aria-label="Current event explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div id="stepNumber" class="metric">—</div>
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Current Node</h5>
+          <h5 class="sidebar-section-title">Current Node
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="current-node"
+              aria-label="Current node explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div id="currentNodeInfo" class="node-info">
             <div class="node-coords">—</div>
             <div class="node-costs">
-              <span id="gLabel" class="cost-label">g:</span> <span id="gCost">—</span>
-              <span id="hLabel" class="cost-label">h:</span> <span id="hCost">—</span>
-              <span id="fLabel" class="cost-label">f:</span> <span id="fCost">—</span>
+              <span class="cost-item">
+                <span id="gLabel" class="cost-label">g:</span>
+                <button id="gCostTooltip" type="button" class="insight-tooltip-icon" data-toggle="tooltip"
+                  data-tooltip-key="g-cost" aria-label="g cost explanation">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                </button>
+                <span id="gCost">—</span>
+              </span>
+              <span class="cost-item">
+                <span id="hLabel" class="cost-label">h:</span>
+                <button id="hCostTooltip" type="button" class="insight-tooltip-icon" data-toggle="tooltip"
+                  data-tooltip-key="h-cost" aria-label="h cost explanation">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                </button>
+                <span id="hCost">—</span>
+              </span>
+              <span class="cost-item">
+                <span id="fLabel" class="cost-label">f:</span>
+                <button id="fCostTooltip" type="button" class="insight-tooltip-icon" data-toggle="tooltip"
+                  data-tooltip-key="f-cost" aria-label="f cost explanation">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                </button>
+                <span id="fCost">—</span>
+              </span>
             </div>
           </div>
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">What's Happening?</h5>
+          <h5 class="sidebar-section-title">What's Happening?
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="happening"
+              aria-label="What is happening explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div id="explanationText" class="explanation-text">
             No algorithm running.
           </div>
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Algorithm Metrics</h5>
+          <h5 class="sidebar-section-title">Algorithm Metrics
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip"
+              data-tooltip-key="algorithm-metrics" aria-label="Algorithm metrics explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div class="metrics-grid">
             <div class="metric-item">
-              <span class="metric-label">Frontier Size:</span>
+              <span class="metric-label-wrap">
+                <span class="metric-label">Frontier Size:</span>
+                <button type="button" class="insight-tooltip-icon" data-toggle="tooltip"
+                  data-tooltip-key="frontier-size" aria-label="Frontier size explanation">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                </button>
+              </span>
               <span id="frontierSize">—</span>
             </div>
             <div class="metric-item">
-              <span class="metric-label">Visited Count:</span>
+              <span class="metric-label-wrap">
+                <span class="metric-label">Visited Count:</span>
+                <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="visited-count"
+                  aria-label="Visited count explanation">
+                  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                </button>
+              </span>
               <span id="visitedCountLive">—</span>
             </div>
           </div>
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Cost Model</h5>
+          <h5 class="sidebar-section-title">Cost Model
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="cost-model"
+              aria-label="Cost model explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div class="cost-model-info">
             <p><strong>Edge Cost</strong> = Base (1) + Turn Penalty + Weight</p>
             <ul class="cost-components">
@@ -274,12 +332,22 @@
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">Why This Path?</h5>
+          <h5 class="sidebar-section-title">Why This Path?
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="why-this-path"
+              aria-label="Why this path explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div id="weightImpactText" class="insight-text"></div>
         </div>
 
         <div class="sidebar-section">
-          <h5 class="sidebar-section-title">AI Summary</h5>
+          <h5 class="sidebar-section-title">AI Summary
+            <button type="button" class="insight-tooltip-icon" data-toggle="tooltip" data-tooltip-key="ai-summary"
+              aria-label="AI summary explanation">
+              <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            </button>
+          </h5>
           <div id="ai-explanation-loading" class="hidden">
             <span class="loading-spinner"></span> Generating explanation...
           </div>
