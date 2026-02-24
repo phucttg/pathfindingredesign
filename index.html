@@ -19,34 +19,14 @@
 
         <div class="navbar-zone navbar-zone-config">
           <ul class="nav navbar-nav navbar-primary">
-            <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Algorithms
-                <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li id='startButtonDijkstra'><a href="#">Dijkstra's Algorithm</a></li>
-                <li id='startButtonAStar2'><a href="#">A* Search</a></li>
-                <li id='startButtonGreedy'><a href="#">Greedy Best-first Search</a></li>
-                <li id='startButtonAStar'><a href="#">Swarm Algorithm</a></li>
-                <li id='startButtonAStar3'><a href="#">Convergent Swarm Algorithm</a></li>
-                <li id='startButtonBidirectional'><a href="#">Bidirectional Swarm Algorithm</a></li>
-                <li id='startButtonBFS'><a href="#">Breadth-first Search</a></li>
-                <li id='startButtonDFS'><a href="#">Depth-first Search</a></li>
-              </ul>
-            </li>
-
-            <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#">Settings
-                <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li id='startButtonClearBoard'><a href="#">Clear Board</a></li>
-                <li id='startButtonClearWalls'><a href="#">Clear Walls &amp; Weights</a></li>
-                <li id='startButtonClearPath'><a href="#">Clear Path</a></li>
-              </ul>
-            </li>
-
-            <li id='startButtonStart'>
-              <button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize!</button>
-            </li>
+            <li id="navAlgoDijkstra"><a href="#">Dijkstra</a></li>
+            <li id="navAlgoAstar"><a href="#">A*</a></li>
+            <li id="navAlgoGreedy"><a href="#">Greedy</a></li>
+            <li id="navAlgoSwarm"><a href="#">Swarm</a></li>
+            <li id="navAlgoConvergent"><a href="#">Conv.Swarm</a></li>
+            <li id="navAlgoBidirectional"><a href="#">Bi-Swarm</a></li>
+            <li id="navAlgoBFS"><a href="#">BFS</a></li>
+            <li id="navAlgoDFS"><a href="#">DFS</a></li>
           </ul>
         </div>
 
@@ -242,6 +222,22 @@
       </div>
 
       <div id="playbackPod" class="playback-pod">
+        <div class="dropdown dropup playback-algo-dropdown">
+          <button id="algoSelectBtn" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+            <span id="algoSelectLabel">Select Algorithm</span> <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li id='startButtonDijkstra'><a href="#">Dijkstra's Algorithm</a></li>
+            <li id='startButtonAStar2'><a href="#">A* Search</a></li>
+            <li id='startButtonGreedy'><a href="#">Greedy Best-first Search</a></li>
+            <li id='startButtonAStar'><a href="#">Swarm Algorithm</a></li>
+            <li id='startButtonAStar3'><a href="#">Convergent Swarm Algorithm</a></li>
+            <li id='startButtonBidirectional'><a href="#">Bidirectional Swarm Algorithm</a></li>
+            <li id='startButtonBFS'><a href="#">Breadth-first Search</a></li>
+            <li id='startButtonDFS'><a href="#">Depth-first Search</a></li>
+          </ul>
+        </div>
+
         <div class="dropdown dropup playback-speed-dropdown">
           <button id="adjustSpeed" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
             Speed: Fast <span class="caret"></span>
@@ -251,6 +247,10 @@
             <li id='adjustAverage'><a href="#">Average</a></li>
             <li id='adjustSlow'><a href="#">Slow</a></li>
           </ul>
+        </div>
+
+        <div id='startButtonStart' class="playback-visualize">
+          <button id="actualStartButton" class="btn btn-primary navbar-btn" type="button">Visualize!</button>
         </div>
 
         <div id="animationControls" class="hidden">
