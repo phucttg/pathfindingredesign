@@ -14,6 +14,87 @@ const algorithmModal = require("./utils/algorithmModal");
 const AnimationController = require("./animations/animationController");
 const mazeSelector = require("./utils/mazeSelector");
 
+const NAV_INFO_MAP = {
+  navAlgoDijkstra: "dijkstra",
+  navAlgoAstar: "astar",
+  navAlgoGreedy: "greedy",
+  navAlgoSwarm: "swarm",
+  navAlgoConvergent: "convergentSwarm",
+  navAlgoBidirectional: "bidirectional",
+  navAlgoBFS: "bfs",
+  navAlgoDFS: "dfs"
+};
+
+const ALGO_SELECTION_MAP = {
+  startButtonDijkstra: {
+    algorithm: "dijkstra",
+    heuristic: null,
+    label: "Dijkstra's Algorithm",
+    clearWeights: false
+  },
+  startButtonAStar2: {
+    algorithm: "astar",
+    heuristic: "poweredManhattanDistance",
+    label: "A* Search",
+    clearWeights: false
+  },
+  startButtonGreedy: {
+    algorithm: "greedy",
+    heuristic: null,
+    label: "Greedy Best-first Search",
+    clearWeights: false
+  },
+  startButtonAStar: {
+    algorithm: "CLA",
+    heuristic: "manhattanDistance",
+    label: "Swarm Algorithm",
+    clearWeights: false
+  },
+  startButtonAStar3: {
+    algorithm: "CLA",
+    heuristic: "extraPoweredManhattanDistance",
+    label: "Convergent Swarm Algorithm",
+    clearWeights: false
+  },
+  startButtonBidirectional: {
+    algorithm: "bidirectional",
+    heuristic: "manhattanDistance",
+    label: "Bidirectional Swarm Algorithm",
+    clearWeights: false
+  },
+  startButtonBFS: {
+    algorithm: "bfs",
+    heuristic: null,
+    label: "Breadth-first Search",
+    clearWeights: true
+  },
+  startButtonDFS: {
+    algorithm: "dfs",
+    heuristic: null,
+    label: "Depth-first Search",
+    clearWeights: true
+  }
+};
+
+function getSelectionByState(algorithm, heuristic) {
+  if (algorithm === "swarm") {
+    algorithm = "CLA";
+    heuristic = "manhattanDistance";
+  } else if (algorithm === "convergentSwarm") {
+    algorithm = "CLA";
+    heuristic = "extraPoweredManhattanDistance";
+  }
+  var targetHeuristic = heuristic || null;
+  var buttonIds = Object.keys(ALGO_SELECTION_MAP);
+  for (var i = 0; i < buttonIds.length; i++) {
+    var option = ALGO_SELECTION_MAP[buttonIds[i]];
+    if (option.algorithm === algorithm && (option.heuristic || null) === targetHeuristic) {
+      return option;
+    }
+  }
+  return null;
+}
+
 function Board(height, width) {
   this.height = height;
   this.width = width;
@@ -50,6 +131,7 @@ function Board(height, width) {
     currentNode: null
   };
   this.animationController = new AnimationController();
+  this.algoSelectPulseTimer = null;
 }
 
 Board.prototype.initialise = function () {
@@ -58,6 +140,9 @@ Board.prototype.initialise = function () {
   this.initSidebar();
   mazeSelector.initSidebarMazeDropup(this);
   historyUI.initHistoryUI(this);
+  this.bindNavInfoOnlyHandlers();
+  this.setAlgorithmSelectionUI("Select Algorithm");
+  this.setInteractiveControlsEnabled(false);
   this.toggleTutorialButtons();
 };
 
@@ -101,28 +186,22 @@ Board.prototype.initSidebar = function () {
 
   if (sidebarClearPath) {
     sidebarClearPath.addEventListener("click", function () {
-      var clearPathButton = document.getElementById("startButtonClearPath");
-      if (clearPathButton && typeof clearPathButton.onclick === "function") {
-        clearPathButton.onclick();
-      }
+      if (!currentObject.buttonsOn) return;
+      currentObject.clearPath("clickedButton");
     });
   }
 
   if (sidebarClearWalls) {
     sidebarClearWalls.addEventListener("click", function () {
-      var clearWallsButton = document.getElementById("startButtonClearWalls");
-      if (clearWallsButton && typeof clearWallsButton.onclick === "function") {
-        clearWallsButton.onclick();
-      }
+      if (!currentObject.buttonsOn) return;
+      currentObject.clearWalls();
     });
   }
 
   if (sidebarClearBoard) {
     sidebarClearBoard.addEventListener("click", function () {
-      var clearBoardButton = document.getElementById("startButtonClearBoard");
-      if (clearBoardButton && typeof clearBoardButton.onclick === "function") {
-        clearBoardButton.onclick();
-      }
+      if (!currentObject.buttonsOn) return;
+      currentObject.clearBoard();
     });
   }
 
@@ -206,6 +285,210 @@ Board.prototype.updateRunningStateUI = function (isRunning) {
     var progress = document.getElementById("animationProgress");
     if (controls) controls.classList.add("hidden");
     if (progress) progress.textContent = "";
+  }
+};
+
+Board.prototype.setAlgorithmSelectionUI = function (label) {
+  var labelElement = document.getElementById("algoSelectLabel");
+  if (!labelElement) return;
+  labelElement.textContent = label || "Select Algorithm";
+};
+
+Board.prototype.syncAlgorithmSelectionUI = function () {
+  var selection = getSelectionByState(this.currentAlgorithm, this.currentHeuristic);
+  if (!selection) {
+    this.setAlgorithmSelectionUI("Select Algorithm");
+    return;
+  }
+  this.setAlgorithmSelectionUI(selection.label);
+};
+
+Board.prototype.applyAlgorithmSelection = function (selection) {
+  if (!selection) return;
+  this.currentAlgorithm = selection.algorithm;
+  this.currentHeuristic = selection.heuristic || null;
+  if (selection.clearWeights) this.clearWeights();
+  this.clearPath("clickedButton");
+  this.changeStartNodeImages();
+  this.setAlgorithmSelectionUI(selection.label);
+};
+
+Board.prototype.pulseAlgoSelectButton = function () {
+  var algoButton = document.getElementById("algoSelectBtn");
+  if (!algoButton) return;
+  algoButton.classList.remove("pulse");
+  void algoButton.offsetWidth;
+  algoButton.classList.add("pulse");
+  if (this.algoSelectPulseTimer) {
+    clearTimeout(this.algoSelectPulseTimer);
+  }
+  this.algoSelectPulseTimer = setTimeout(function () {
+    algoButton.classList.remove("pulse");
+  }, 1200);
+};
+
+Board.prototype.bindNavInfoOnlyHandlers = function () {
+  Object.keys(NAV_INFO_MAP).forEach(function (id) {
+    var navItem = document.getElementById(id);
+    if (!navItem) return;
+    navItem.onclick = function (event) {
+      if (event) event.preventDefault();
+      algorithmModal.showAlgorithmInfo(NAV_INFO_MAP[id]);
+    };
+  });
+};
+
+Board.prototype.bindAlgoDropupHandlers = function () {
+  var currentObject = this;
+  Object.keys(ALGO_SELECTION_MAP).forEach(function (id) {
+    var optionEl = document.getElementById(id);
+    if (!optionEl) return;
+    optionEl.onclick = function (event) {
+      if (event) event.preventDefault();
+      if (!currentObject.buttonsOn) return;
+      currentObject.applyAlgorithmSelection(ALGO_SELECTION_MAP[id]);
+      var algoSelectBtn = document.getElementById("algoSelectBtn");
+      if (algoSelectBtn && algoSelectBtn.parentNode) {
+        algoSelectBtn.parentNode.classList.remove("open");
+      }
+    };
+  });
+};
+
+Board.prototype.runVisualization = function () {
+  this.clearPath("clickedButton");
+  this.toggleButtons();
+  let weightedAlgorithms = ["dijkstra", "CLA", "greedy"];
+  let unweightedAlgorithms = ["dfs", "bfs"];
+  let success;
+  if (this.currentAlgorithm === "bidirectional") {
+    if (!this.numberOfObjects) {
+      success = bidirectional(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this, this.currentTrace);
+      launchAnimations(this, success, "weighted");
+    } else {
+      this.isObject = true;
+      success = bidirectional(this.nodes, this.start, this.object, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this, this.currentTrace);
+      launchAnimations(this, success, "weighted");
+    }
+    this.algoDone = true;
+  } else if (this.currentAlgorithm === "astar") {
+    if (!this.numberOfObjects) {
+      success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
+      launchAnimations(this, success, "weighted");
+    } else {
+      this.isObject = true;
+      success = weightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
+      launchAnimations(this, success, "weighted", "object", this.currentAlgorithm);
+    }
+    this.algoDone = true;
+  } else if (weightedAlgorithms.includes(this.currentAlgorithm)) {
+    if (!this.numberOfObjects) {
+      success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
+      launchAnimations(this, success, "weighted");
+    } else {
+      this.isObject = true;
+      success = weightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
+      launchAnimations(this, success, "weighted", "object", this.currentAlgorithm, this.currentHeuristic);
+    }
+    this.algoDone = true;
+  } else if (unweightedAlgorithms.includes(this.currentAlgorithm)) {
+    if (!this.numberOfObjects) {
+      success = unweightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentTrace);
+      launchAnimations(this, success, "unweighted");
+    } else {
+      this.isObject = true;
+      success = unweightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentTrace);
+      launchAnimations(this, success, "unweighted", "object", this.currentAlgorithm);
+    }
+    this.algoDone = true;
+  }
+};
+
+Board.prototype.bindStartVisualizeHandler = function () {
+  var currentObject = this;
+  var startContainer = document.getElementById("startButtonStart");
+  var actualStartButton = document.getElementById("actualStartButton");
+  if (!startContainer || !actualStartButton) return;
+  var handleStart = function (event) {
+    if (event) event.preventDefault();
+    if (!currentObject.buttonsOn) return;
+    if (!currentObject.currentAlgorithm) {
+      currentObject.pulseAlgoSelectButton();
+      return;
+    }
+    currentObject.runVisualization();
+  };
+  startContainer.onclick = handleStart;
+  actualStartButton.onclick = function (event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    handleStart(event);
+  };
+};
+
+Board.prototype.setInteractiveControlsEnabled = function (isEnabled) {
+  var isDisabled = !isEnabled;
+  var algoSelectBtn = document.getElementById("algoSelectBtn");
+  var adjustSpeedBtn = document.getElementById("adjustSpeed");
+  var actualStartButton = document.getElementById("actualStartButton");
+  var weightSlider = document.getElementById("weightSlider");
+  var sidebarMazeBtn = document.getElementById("sidebarMazeBtn");
+  var sidebarClearPath = document.getElementById("sidebarClearPath");
+  var sidebarClearWalls = document.getElementById("sidebarClearWalls");
+  var sidebarClearBoard = document.getElementById("sidebarClearBoard");
+  var algoDropdown = document.querySelector("#playbackPod .playback-algo-dropdown");
+  var speedDropdown = document.querySelector("#playbackPod .playback-speed-dropdown");
+  var dropdowns = document.querySelectorAll("#playbackPod .dropdown");
+  var toggleItemIds = Object.keys(ALGO_SELECTION_MAP).concat(["adjustFast", "adjustAverage", "adjustSlow"]);
+
+  if (algoSelectBtn) {
+    algoSelectBtn.disabled = isDisabled;
+    algoSelectBtn.classList.toggle("control-disabled", isDisabled);
+  }
+  if (adjustSpeedBtn) {
+    adjustSpeedBtn.disabled = isDisabled;
+    adjustSpeedBtn.classList.toggle("control-disabled", isDisabled);
+  }
+  if (actualStartButton) {
+    actualStartButton.disabled = isDisabled;
+    actualStartButton.classList.toggle("control-disabled", isDisabled);
+  }
+  if (weightSlider) weightSlider.disabled = isDisabled;
+  if (sidebarMazeBtn) sidebarMazeBtn.disabled = isDisabled;
+  if (sidebarClearPath) {
+    sidebarClearPath.disabled = isDisabled;
+    sidebarClearPath.classList.toggle("control-disabled", isDisabled);
+  }
+  if (sidebarClearWalls) {
+    sidebarClearWalls.disabled = isDisabled;
+    sidebarClearWalls.classList.toggle("control-disabled", isDisabled);
+  }
+  if (sidebarClearBoard) {
+    sidebarClearBoard.disabled = isDisabled;
+    sidebarClearBoard.classList.toggle("control-disabled", isDisabled);
+  }
+  if (algoDropdown) {
+    algoDropdown.classList.toggle("control-disabled", isDisabled);
+  }
+  if (speedDropdown) {
+    speedDropdown.classList.toggle("control-disabled", isDisabled);
+  }
+
+  toggleItemIds.forEach(function (id) {
+    var element = document.getElementById(id);
+    if (element) element.classList.toggle("control-disabled", isDisabled);
+  });
+
+  if (dropdowns && isDisabled) {
+    for (var i = 0; i < dropdowns.length; i++) {
+      dropdowns[i].classList.remove("open");
+    }
+  }
+
+  if (historyUI && typeof historyUI.setHistoryLocked === "function") {
+    historyUI.setHistoryLocked(this, isDisabled);
   }
 };
 
@@ -871,35 +1154,7 @@ Board.prototype.clearPath = function (clickedButton) {
     target.status = "target";
     document.getElementById(target.id).className = "target";
   }
-
-  document.getElementById("startButtonStart").onclick = () => {
-    if (!this.currentAlgorithm) {
-      document.getElementById("startButtonStart").innerHTML = '<button class="btn btn-default navbar-btn" type="button">Pick an Algorithm!</button>'
-    } else {
-      this.clearPath("clickedButton");
-      this.toggleButtons();
-      let weightedAlgorithms = ["dijkstra", "CLA", "greedy"];
-      let unweightedAlgorithms = ["dfs", "bfs"];
-      let success;
-      if (this.currentAlgorithm === "bidirectional") {
-        success = bidirectional(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this, this.currentTrace);
-        launchAnimations(this, success, "weighted");
-        this.algoDone = true;
-      } else if (this.currentAlgorithm === "astar") {
-        success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-        launchAnimations(this, success, "weighted");
-        this.algoDone = true;
-      } else if (weightedAlgorithms.includes(this.currentAlgorithm)) {
-        success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-        launchAnimations(this, success, "weighted");
-        this.algoDone = true;
-      } else if (unweightedAlgorithms.includes(this.currentAlgorithm)) {
-        success = unweightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentTrace);
-        launchAnimations(this, success, "unweighted");
-        this.algoDone = true;
-      }
-    }
-  }
+  this.bindStartVisualizeHandler();
 
   this.algoDone = false;
   Object.keys(this.nodes).forEach(id => {
@@ -937,6 +1192,66 @@ Board.prototype.clearWalls = function () {
     }
   });
 }
+
+Board.prototype.clearBoard = function () {
+  if (this.animationController) this.animationController.stop();
+  var controls = document.getElementById("animationControls");
+  if (controls) controls.classList.add("hidden");
+  var progressEl = document.getElementById("animationProgress");
+  if (progressEl) progressEl.textContent = "";
+  this.currentTrace = [];
+  this.updateExplanationPanel(null);
+  var impactDisplay = document.getElementById("weightImpactDisplay");
+  if (impactDisplay) {
+    impactDisplay.classList.add("hidden");
+  }
+  var impactText = document.getElementById("weightImpactText");
+  if (impactText) {
+    impactText.textContent = "";
+  }
+  let height = this.height;
+  let width = this.width;
+  let start = Math.floor(height / 2).toString() + "-" + Math.floor(width / 4).toString();
+  let target = Math.floor(height / 2).toString() + "-" + Math.floor(3 * width / 4).toString();
+
+  Object.keys(this.nodes).forEach(id => {
+    let currentNode = this.nodes[id];
+    let currentHTMLNode = document.getElementById(id);
+    if (id === start) {
+      currentHTMLNode.className = "start";
+      currentNode.status = "start";
+    } else if (id === target) {
+      currentHTMLNode.className = "target";
+      currentNode.status = "target"
+    } else {
+      currentHTMLNode.className = "unvisited";
+      currentNode.status = "unvisited";
+    }
+    currentNode.previousNode = null;
+    currentNode.path = null;
+    currentNode.direction = null;
+    currentNode.storedDirection = null;
+    currentNode.distance = Infinity;
+    currentNode.totalDistance = Infinity;
+    currentNode.heuristicDistance = null;
+    currentNode.weight = 0;
+
+  });
+  this.start = start;
+  this.target = target;
+  this.nodesToAnimate = [];
+  this.shortestPathNodesToAnimate = [];
+  this.wallsToAnimate = [];
+  this.mouseDown = false;
+  this.pressedNodeStatus = "normal";
+  this.previouslyPressedNodeStatus = null;
+  this.previouslySwitchedNode = null;
+  this.previouslySwitchedNodeWeight = 0;
+  this.keyDown = false;
+  this.algoDone = false;
+  this.clearPath("clickedButton");
+  this.bindStartVisualizeHandler();
+};
 
 Board.prototype.clearWeights = function () {
   Object.keys(this.nodes).forEach(id => {
@@ -1124,85 +1439,53 @@ Board.prototype.toggleTutorialButtons = function () {
 };
 
 Board.prototype.toggleButtons = function () {
-  document.getElementById("refreshButton").onclick = () => {
-    window.location.reload(true);
+  var refreshButton = document.getElementById("refreshButton");
+  if (refreshButton) {
+    refreshButton.onclick = () => {
+      window.location.reload(true);
+    };
   }
 
   if (!this.buttonsOn) {
     this.buttonsOn = true;
+    this.bindStartVisualizeHandler();
+    this.bindAlgoDropupHandlers();
+    this.bindNavInfoOnlyHandlers();
 
-    document.getElementById("startButtonStart").onclick = () => {
-      if (!this.currentAlgorithm) {
-        document.getElementById("startButtonStart").innerHTML = '<button class="btn btn-default navbar-btn" type="button">Pick an Algorithm!</button>'
-      } else {
-        this.clearPath("clickedButton");
-        this.toggleButtons();
-        let weightedAlgorithms = ["dijkstra", "CLA", "CLA", "greedy"];
-        let unweightedAlgorithms = ["dfs", "bfs"];
-        let success;
-        if (this.currentAlgorithm === "bidirectional") {
-          if (!this.numberOfObjects) {
-            success = bidirectional(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this, this.currentTrace);
-            launchAnimations(this, success, "weighted");
-          } else {
-            this.isObject = true;
-            success = bidirectional(this.nodes, this.start, this.object, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this, this.currentTrace);
-            launchAnimations(this, success, "weighted");
-          }
-          this.algoDone = true;
-        } else if (this.currentAlgorithm === "astar") {
-          if (!this.numberOfObjects) {
-            success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-            launchAnimations(this, success, "weighted");
-          } else {
-            this.isObject = true;
-            success = weightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-            launchAnimations(this, success, "weighted", "object", this.currentAlgorithm);
-          }
-          this.algoDone = true;
-        } else if (weightedAlgorithms.includes(this.currentAlgorithm)) {
-          if (!this.numberOfObjects) {
-            success = weightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-            launchAnimations(this, success, "weighted");
-          } else {
-            this.isObject = true;
-            success = weightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentHeuristic, this.currentTrace);
-            launchAnimations(this, success, "weighted", "object", this.currentAlgorithm, this.currentHeuristic);
-          }
-          this.algoDone = true;
-        } else if (unweightedAlgorithms.includes(this.currentAlgorithm)) {
-          if (!this.numberOfObjects) {
-            success = unweightedSearchAlgorithm(this.nodes, this.start, this.target, this.nodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentTrace);
-            launchAnimations(this, success, "unweighted");
-          } else {
-            this.isObject = true;
-            success = unweightedSearchAlgorithm(this.nodes, this.start, this.object, this.objectNodesToAnimate, this.boardArray, this.currentAlgorithm, this.currentTrace);
-            launchAnimations(this, success, "unweighted", "object", this.currentAlgorithm);
-          }
-          this.algoDone = true;
-        }
-      }
+    var adjustFast = document.getElementById("adjustFast");
+    if (adjustFast) {
+      adjustFast.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.speed = "fast";
+        document.getElementById("adjustSpeed").innerHTML = 'Speed: Fast<span class="caret"></span>';
+      };
     }
 
-    document.getElementById("adjustFast").onclick = () => {
-      this.speed = "fast";
-      document.getElementById("adjustSpeed").innerHTML = 'Speed: Fast<span class="caret"></span>';
+    var adjustAverage = document.getElementById("adjustAverage");
+    if (adjustAverage) {
+      adjustAverage.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.speed = "average";
+        document.getElementById("adjustSpeed").innerHTML = 'Speed: Average<span class="caret"></span>';
+      };
     }
 
-    document.getElementById("adjustAverage").onclick = () => {
-      this.speed = "average";
-      document.getElementById("adjustSpeed").innerHTML = 'Speed: Average<span class="caret"></span>';
+    var adjustSlow = document.getElementById("adjustSlow");
+    if (adjustSlow) {
+      adjustSlow.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.speed = "slow";
+        document.getElementById("adjustSpeed").innerHTML = 'Speed: Slow<span class="caret"></span>';
+      };
     }
 
-    document.getElementById("adjustSlow").onclick = () => {
-      this.speed = "slow";
-      document.getElementById("adjustSpeed").innerHTML = 'Speed: Slow<span class="caret"></span>';
-    }
-
-    // Weight slider listener
-    document.getElementById("weightSlider").oninput = (e) => {
-      this.currentWeightValue = parseInt(e.target.value);
-      document.getElementById("weightValue").textContent = this.currentWeightValue;
+    var weightSlider = document.getElementById("weightSlider");
+    if (weightSlider) {
+      weightSlider.oninput = (e) => {
+        if (!this.buttonsOn) return;
+        this.currentWeightValue = parseInt(e.target.value);
+        document.getElementById("weightValue").textContent = this.currentWeightValue;
+      };
     }
 
     var self = this;
@@ -1229,192 +1512,36 @@ Board.prototype.toggleButtons = function () {
       };
     }
 
-    document.getElementById("startButtonBidirectional").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Bidirectional Swarm!</button>'
-      this.currentAlgorithm = "bidirectional";
-      this.currentHeuristic = "manhattanDistance";
-      this.clearPath("clickedButton");
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("bidirectional"));
-      this.changeStartNodeImages();
+    var legacyClearPath = document.getElementById("startButtonClearPath");
+    if (legacyClearPath) {
+      legacyClearPath.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.clearPath("clickedButton");
+      };
     }
 
-    document.getElementById("startButtonDijkstra").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Dijkstra\'s!</button>'
-      this.currentAlgorithm = "dijkstra";
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("dijkstra"));
-      this.changeStartNodeImages();
+    var legacyClearWalls = document.getElementById("startButtonClearWalls");
+    if (legacyClearWalls) {
+      legacyClearWalls.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.clearWalls();
+      };
     }
 
-    document.getElementById("startButtonAStar").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Swarm!</button>'
-      this.currentAlgorithm = "CLA";
-      this.currentHeuristic = "manhattanDistance"
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("CLA", "manhattanDistance"));
-      this.changeStartNodeImages();
+    var legacyClearBoard = document.getElementById("startButtonClearBoard");
+    if (legacyClearBoard) {
+      legacyClearBoard.onclick = () => {
+        if (!this.buttonsOn) return;
+        this.clearBoard();
+      };
     }
 
-    document.getElementById("startButtonAStar2").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize A*!</button>'
-      this.currentAlgorithm = "astar";
-      this.currentHeuristic = "poweredManhattanDistance"
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("astar"));
-      this.changeStartNodeImages();
-    }
-
-    document.getElementById("startButtonAStar3").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Convergent Swarm!</button>'
-      this.currentAlgorithm = "CLA";
-      this.currentHeuristic = "extraPoweredManhattanDistance"
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("CLA", "extraPoweredManhattanDistance"));
-      this.changeStartNodeImages();
-    }
-
-    document.getElementById("startButtonGreedy").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize Greedy!</button>'
-      this.currentAlgorithm = "greedy";
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("greedy"));
-      this.changeStartNodeImages();
-    }
-
-    document.getElementById("startButtonBFS").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize BFS!</button>'
-      this.currentAlgorithm = "bfs";
-      this.clearWeights();
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("bfs"));
-      this.changeStartNodeImages();
-    }
-
-    document.getElementById("startButtonDFS").onclick = () => {
-      document.getElementById("startButtonStart").innerHTML = '<button id="actualStartButton" class="btn btn-default navbar-btn" type="button">Visualize DFS!</button>'
-      this.currentAlgorithm = "dfs";
-      this.clearWeights();
-      algorithmModal.showAlgorithmInfo(algorithmDescriptions.getAlgorithmKey("dfs"));
-      this.changeStartNodeImages();
-    }
-
-    document.getElementById("startButtonClearBoard").onclick = () => {
-      if (this.animationController) this.animationController.stop();
-      var controls = document.getElementById("animationControls");
-      if (controls) controls.classList.add("hidden");
-      var progressEl = document.getElementById("animationProgress");
-      if (progressEl) progressEl.textContent = "";
-      this.currentTrace = [];
-      this.updateExplanationPanel(null);
-      var impactDisplay = document.getElementById("weightImpactDisplay");
-      if (impactDisplay) {
-        impactDisplay.classList.add("hidden");
-      }
-      var impactText = document.getElementById("weightImpactText");
-      if (impactText) {
-        impactText.textContent = "";
-      }
-      let height = this.height;
-      let width = this.width;
-      let start = Math.floor(height / 2).toString() + "-" + Math.floor(width / 4).toString();
-      let target = Math.floor(height / 2).toString() + "-" + Math.floor(3 * width / 4).toString();
-
-      Object.keys(this.nodes).forEach(id => {
-        let currentNode = this.nodes[id];
-        let currentHTMLNode = document.getElementById(id);
-        if (id === start) {
-          currentHTMLNode.className = "start";
-          currentNode.status = "start";
-        } else if (id === target) {
-          currentHTMLNode.className = "target";
-          currentNode.status = "target"
-        } else {
-          currentHTMLNode.className = "unvisited";
-          currentNode.status = "unvisited";
-        }
-        currentNode.previousNode = null;
-        currentNode.path = null;
-        currentNode.direction = null;
-        currentNode.storedDirection = null;
-        currentNode.distance = Infinity;
-        currentNode.totalDistance = Infinity;
-        currentNode.heuristicDistance = null;
-        currentNode.weight = 0;
-
-      });
-      this.start = start;
-      this.target = target;
-      this.nodesToAnimate = [];
-      this.shortestPathNodesToAnimate = [];
-      this.wallsToAnimate = [];
-      this.mouseDown = false;
-      this.pressedNodeStatus = "normal";
-      this.previouslyPressedNodeStatus = null;
-      this.previouslySwitchedNode = null;
-      this.previouslySwitchedNodeWeight = 0;
-      this.keyDown = false;
-      this.algoDone = false;
-    }
-
-    document.getElementById("startButtonClearWalls").onclick = () => {
-      this.clearWalls();
-    }
-
-    document.getElementById("startButtonClearPath").onclick = () => {
-      this.clearPath("clickedButton");
-    }
-
-    document.getElementById("startButtonClearPath").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonClearWalls").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonClearBoard").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonDFS").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonBFS").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonDijkstra").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonAStar").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonAStar2").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonAStar3").className = "navbar-inverse navbar-nav";
-    document.getElementById("adjustFast").className = "navbar-inverse navbar-nav";
-    document.getElementById("adjustAverage").className = "navbar-inverse navbar-nav";
-    document.getElementById("adjustSlow").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonBidirectional").className = "navbar-inverse navbar-nav";
-    document.getElementById("startButtonGreedy").className = "navbar-inverse navbar-nav";
-    let sidebarMazeBtn = document.getElementById("sidebarMazeBtn");
-    if (sidebarMazeBtn) sidebarMazeBtn.disabled = false;
-    document.getElementById("actualStartButton").style.backgroundColor = "";
-
+    this.setInteractiveControlsEnabled(true);
+    this.syncAlgorithmSelectionUI();
   } else {
     this.buttonsOn = false;
-    document.getElementById("startButtonDFS").onclick = null;
-    document.getElementById("startButtonBFS").onclick = null;
-    document.getElementById("startButtonDijkstra").onclick = null;
-    document.getElementById("startButtonAStar").onclick = null;
-    document.getElementById("startButtonGreedy").onclick = null;
-    document.getElementById("startButtonAStar2").onclick = null;
-    document.getElementById("startButtonAStar3").onclick = null;
-    document.getElementById("startButtonBidirectional").onclick = null;
-    document.getElementById("startButtonClearPath").onclick = null;
-    document.getElementById("startButtonClearWalls").onclick = null;
-    document.getElementById("startButtonClearBoard").onclick = null;
-    document.getElementById("startButtonStart").onclick = null;
-    document.getElementById("adjustFast").onclick = null;
-    document.getElementById("adjustAverage").onclick = null;
-    document.getElementById("adjustSlow").onclick = null;
-
-    document.getElementById("adjustFast").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("adjustAverage").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("adjustSlow").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonClearPath").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonClearWalls").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonClearBoard").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonDFS").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonBFS").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonDijkstra").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonAStar").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonGreedy").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonAStar2").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonAStar3").className = "navbar-inverse navbar-nav disabledA";
-    document.getElementById("startButtonBidirectional").className = "navbar-inverse navbar-nav disabledA";
-    let sidebarMazeBtn = document.getElementById("sidebarMazeBtn");
-    if (sidebarMazeBtn) sidebarMazeBtn.disabled = true;
-
-    document.getElementById("actualStartButton").style.backgroundColor = "rgb(185, 15, 15)";
+    this.setInteractiveControlsEnabled(false);
   }
-
-
 }
 
 const CELL_WIDTH = 25;
