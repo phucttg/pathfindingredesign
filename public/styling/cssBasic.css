@@ -304,97 +304,1069 @@
   z-index: 1;
 }
 
-#tutorial {
+/* === TUTORIAL OVERLAY === */
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter/Inter-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter/Inter-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.tut-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: rgba(7, 11, 22, 0.74);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: tutOverlayFadeIn 0.55s ease-out;
+}
+
+.tut-overlay.tut-hidden {
+  display: none;
+}
+
+.tut-overlay.tut-closing {
+  animation: tutOverlayFadeOut 0.3s ease forwards;
+}
+
+.tut-backdrop {
   position: absolute;
-  z-index: 3;
-  background-color: rgba(255, 255, 255, 1);
-  width: 50%;
-  height: 70%;
-  border: 2px solid #34495e;
-  border-radius: 4px;
+  inset: 0;
+  background:
+    radial-gradient(circle at 14% 15%, rgba(0, 212, 176, 0.17), transparent 38%),
+    radial-gradient(circle at 84% 78%, rgba(0, 180, 216, 0.12), transparent 36%),
+    linear-gradient(140deg, rgba(3, 10, 29, 0.92) 0%, rgba(6, 16, 38, 0.89) 50%, rgba(7, 14, 31, 0.95) 100%);
+}
+
+.tut-stage {
+  position: relative;
+  width: min(1180px, calc(100vw - 32px));
+  margin: 18px;
+  padding: 22px 28px 18px;
+  border: 1px solid rgba(145, 186, 232, 0.26);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(8, 18, 44, 0.88) 0%, rgba(8, 18, 44, 0.68) 100%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow: hidden;
+}
+
+.tut-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(90, 131, 191, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 131, 191, 0.14) 1px, transparent 1px);
+  background-size: 76px 76px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.tut-stage::after {
+  content: "";
+  position: absolute;
+  inset: -20% -25% auto;
+  height: 80%;
+  background: radial-gradient(circle at 70% 30%, rgba(0, 229, 160, 0.15), transparent 45%);
+  pointer-events: none;
+}
+
+.tut-progress,
+.tut-slide-frame,
+.tut-nav {
+  position: relative;
+  z-index: 1;
+}
+
+.tut-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tut-progress-track {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tut-progress-segment {
+  display: block;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(112, 139, 179, 0.45);
+  background: rgba(35, 49, 74, 0.78);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tut-progress-segment.is-complete,
+.tut-progress-segment.is-active {
+  border-color: rgba(78, 255, 216, 0.9);
+  background: linear-gradient(90deg, #10d3ea 0%, #38f3bc 100%);
+  box-shadow: 0 0 0 1px rgba(67, 248, 207, 0.2), 0 0 14px rgba(43, 240, 201, 0.64);
+}
+
+.tut-progress-label {
+  min-width: 66px;
   text-align: center;
-  float: right;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: auto;
-  margin-bottom: auto;
-  bottom: 0;
-  top: 0;
-  left: 0;
-  right: 0;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(122, 159, 206, 0.36);
+  background: rgba(20, 30, 55, 0.68);
+  color: #d7f8ff;
+  font: 600 20px/1.2 "Inter", "Segoe UI", sans-serif;
 }
 
-#nextButton {
-  color: #ffffff;
-  background-color: #1abc9c;
+.tut-slide-frame {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(360px, 1fr);
+  gap: 32px;
+  align-items: center;
+  min-height: 440px;
+  transition: opacity 0.32s ease, transform 0.32s ease;
+}
+
+.tut-slide-frame.tut-is-transitioning {
+  opacity: 0;
+  transform: translateX(-26px);
+}
+
+.tut-slide-frame.tut-direction-back.tut-is-transitioning {
+  transform: translateX(26px);
+}
+
+.tut-illustration-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tut-illustration {
+  position: relative;
+  width: min(520px, 100%);
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(120, 157, 215, 0.24);
+  border-radius: 26px;
+  background: linear-gradient(160deg, rgba(8, 20, 46, 0.72) 0%, rgba(6, 16, 38, 0.58) 100%);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(48, 91, 146, 0.16);
+}
+
+.tut-card {
+  max-width: 470px;
+  margin-inline: auto;
+  padding: 38px 40px;
+  border-radius: 22px;
+  border: 1px solid rgba(198, 231, 255, 0.34);
+  background: rgba(236, 246, 255, 0.11);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.33), 0 0 35px rgba(41, 223, 200, 0.2);
+}
+
+.tut-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(50, 241, 194, 0.52);
+  background: rgba(0, 229, 160, 0.16);
+  color: #5bffd9;
+  letter-spacing: 0.07em;
+  font: 600 13px/1 "Inter", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+}
+
+.tut-title {
+  margin: 20px 0 14px;
+  color: #f3f7ff;
+  letter-spacing: -0.03em;
+  font: 700 clamp(36px, 4.9vw, 58px) / 1.06 "Inter", "Segoe UI", sans-serif;
+}
+
+.tut-body {
+  margin: 0;
+  color: rgba(223, 234, 247, 0.82);
+  font: 500 clamp(24px, 1.85vw, 31px) / 1.45 "Inter", "Segoe UI", sans-serif;
+}
+
+.tut-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+}
+
+.tut-nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tut-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  font: 600 18px/1 "Inter", "Segoe UI", sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.tut-btn:focus-visible {
+  outline: 2px solid rgba(92, 252, 216, 0.95);
+  outline-offset: 2px;
+}
+
+.tut-btn-skip {
+  background: transparent;
+  color: rgba(191, 208, 232, 0.92);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 8px 0;
+}
+
+.tut-btn-skip:hover {
+  color: rgba(230, 240, 255, 0.96);
+}
+
+.tut-btn-prev {
+  min-width: 122px;
+  padding: 13px 22px;
+  border: 1px solid rgba(122, 159, 206, 0.48);
+  background: rgba(14, 24, 46, 0.54);
+  color: #d5e5fb;
+}
+
+.tut-btn-prev:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(24, 40, 71, 0.76);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+}
+
+.tut-btn-prev:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tut-btn-next {
+  min-width: 172px;
+  padding: 13px 26px;
+  color: #00313d;
+  background: linear-gradient(90deg, #22dce8 0%, #46f3b6 100%);
+  box-shadow: 0 8px 24px rgba(40, 223, 198, 0.45);
+}
+
+.tut-btn-next:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(40, 223, 198, 0.55);
+}
+
+.tut-scene {
   position: absolute;
-  right: 2%;
-  bottom: 2%;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(18px) scale(0.98);
+  transition: opacity 0.36s ease, transform 0.36s ease;
+  pointer-events: none;
 }
 
-#previousButton {
-  color: #ffffff;
-  background-color: #1abc9c;
+.tut-scene.is-active {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.scene-welcome-ripple .tut-ring,
+.scene-welcome-ripple .tut-dot {
   position: absolute;
-  right: 12%;
-  bottom: 2%;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
 }
 
-#skipButton {
-  color: #ffffff;
-  background-color: #1abc9c;
+.scene-welcome-ripple .tut-ring {
+  border: 2px solid rgba(41, 224, 199, 0.43);
+  animation: tutRipple 3s ease-out infinite;
+}
+
+.scene-welcome-ripple .ring-1 {
+  width: 96px;
+  height: 96px;
+  animation-delay: 0s;
+}
+
+.scene-welcome-ripple .ring-2 {
+  width: 166px;
+  height: 166px;
+  animation-delay: 0.28s;
+}
+
+.scene-welcome-ripple .ring-3 {
+  width: 236px;
+  height: 236px;
+  animation-delay: 0.56s;
+}
+
+.scene-welcome-ripple .ring-4 {
+  width: 306px;
+  height: 306px;
+  animation-delay: 0.84s;
+}
+
+.scene-welcome-ripple .tut-dot {
+  width: 26px;
+  height: 26px;
+  background: radial-gradient(circle at 35% 30%, #73ffe8, #18e3c2);
+  box-shadow: 0 0 26px rgba(51, 255, 218, 0.78);
+  animation: tutDotPulse 2.4s ease-in-out infinite;
+}
+
+.scene-grid-activation .tut-mini-grid {
   position: absolute;
-  left: 2%;
-  bottom: 2%;
+  left: 50%;
+  top: 50%;
+  width: min(72%, 340px);
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
 }
 
-#finishButton {
-  color: #ffffff;
-  background-color: #1abc9c;
+.scene-grid-activation .grid-cell {
+  border-radius: 11px;
+  border: 1px solid rgba(102, 130, 173, 0.36);
+  background: rgba(22, 34, 58, 0.88);
+  animation: tutCellGlow 2.8s ease-in-out infinite;
+}
+
+.scene-grid-activation .grid-cell:nth-child(5n + 1) {
+  animation-delay: 0s;
+}
+
+.scene-grid-activation .grid-cell:nth-child(5n + 2) {
+  animation-delay: 0.2s;
+}
+
+.scene-grid-activation .grid-cell:nth-child(5n + 3) {
+  animation-delay: 0.4s;
+}
+
+.scene-grid-activation .grid-cell:nth-child(5n + 4) {
+  animation-delay: 0.6s;
+}
+
+.scene-grid-activation .grid-cell:nth-child(5n) {
+  animation-delay: 0.8s;
+}
+
+.scene-algorithm-race .tut-track {
   position: absolute;
-  right: 2%;
-  bottom: 2%;
+  left: 10%;
+  width: 78%;
+  border-radius: 999px;
+  border: 2px dashed rgba(67, 213, 220, 0.35);
 }
 
-#finishButton:hover,
-#nextButton:hover,
-#previousButton:hover,
-#skipButton:hover {
-  background-color: #48c9b0;
+.scene-algorithm-race .tut-track-top {
+  top: 34%;
 }
 
-#tutorialCounter {
+.scene-algorithm-race .tut-track-bottom {
+  top: 58%;
+  clip-path: polygon(0 40%, 18% 95%, 37% 25%, 58% 85%, 77% 30%, 100% 66%, 100% 100%, 0 100%);
+  border-top: none;
+  border-right: none;
+}
+
+.scene-algorithm-race .tut-runner {
   position: absolute;
-  right: 2%;
-  top: 2%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #44f5cf;
+  box-shadow: 0 0 18px rgba(53, 238, 202, 0.9);
 }
 
-#mainTutorialImage {
-  width: 25%;
-  padding-top: 5px;
+.scene-algorithm-race .runner-top {
+  top: calc(34% - 6px);
+  left: 10%;
+  animation: tutRunnerTop 2.5s linear infinite;
 }
 
-#secondTutorialImage {
-  padding-top: 5px;
+.scene-algorithm-race .runner-bottom {
+  top: calc(58% - 8px);
+  left: 10%;
+  animation: tutRunnerBottom 2.8s ease-in-out infinite;
 }
 
-#tutorial > h3 {
-  padding-bottom: 5px;
+.scene-obstacles .tut-bricks {
+  position: absolute;
+  left: 10%;
+  top: 37%;
+  width: 43%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-#tutorial > h6 {
-  padding: 5px 20px 5px 20px;
+.scene-obstacles .brick {
+  aspect-ratio: 1.8 / 1;
+  border-radius: 6px;
+  border: 1px solid rgba(110, 152, 220, 0.5);
+  background: rgba(18, 38, 74, 0.92);
+  animation: tutBrickDrop 2.8s ease-in-out infinite;
 }
 
-#tutorial > p {
-  padding: 5px 20px 5px 20px;
+.scene-obstacles .brick:nth-child(3n + 1) {
+  animation-delay: 0s;
 }
 
-#tutorial > ul li {
-  list-style: none;
-  padding-bottom: 5px;
-  padding-right: 40px;
-  font-size: 14px;
+.scene-obstacles .brick:nth-child(3n + 2) {
+  animation-delay: 0.18s;
+}
+
+.scene-obstacles .brick:nth-child(3n) {
+  animation-delay: 0.36s;
+}
+
+.scene-obstacles .tut-weight-badge {
+  position: absolute;
+  right: 18%;
+  top: 34%;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 201, 96, 0.86);
+  box-shadow: 0 0 26px rgba(255, 183, 64, 0.58);
+  background: radial-gradient(circle at 30% 24%, rgba(255, 238, 181, 0.8), rgba(232, 157, 56, 0.62));
+  animation: tutWeightPulse 2.3s ease-in-out infinite;
+}
+
+.scene-obstacles .tut-slider-line {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 18%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(175, 197, 225, 0.38);
+}
+
+.scene-obstacles .tut-slider-knob {
+  position: absolute;
+  bottom: calc(18% - 7px);
+  left: 22%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #dbedf7;
+  box-shadow: 0 0 14px rgba(138, 179, 218, 0.62);
+  animation: tutKnobSlide 2.7s ease-in-out infinite;
+}
+
+.scene-drag-recalc .tut-endpoint {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(170, 200, 236, 0.55);
+  color: rgba(213, 231, 252, 0.85);
+  text-align: center;
+  font: 600 17px/28px "Inter", "Segoe UI", sans-serif;
+}
+
+.scene-drag-recalc .endpoint-a {
+  left: 10%;
+  bottom: 16%;
+}
+
+.scene-drag-recalc .endpoint-b {
+  right: 14%;
+  top: 18%;
+}
+
+.scene-drag-recalc .tut-arc-path {
+  position: absolute;
+  inset: 26% 18% 22% 14%;
+  border: 3px dashed rgba(57, 231, 202, 0.53);
+  border-radius: 58% 42% 44% 56% / 58% 58% 42% 42%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+}
+
+.scene-drag-recalc .tut-drag-dot {
+  position: absolute;
+  left: 15%;
+  bottom: 20%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #49f4cf;
+  box-shadow: 0 0 18px rgba(68, 238, 202, 0.78);
+  animation: tutDragDot 2.9s ease-in-out infinite;
+}
+
+.scene-drag-recalc .tut-cursor {
+  position: absolute;
+  left: 14%;
+  bottom: 28%;
+  width: 0;
+  height: 0;
+  border-left: 18px solid #d9fbff;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  filter: drop-shadow(0 0 10px rgba(102, 251, 227, 0.66));
+  animation: tutCursorFollow 2.9s ease-in-out infinite;
+}
+
+.scene-controls-ui .tut-controls-panel {
+  position: absolute;
+  inset: 16%;
+  border-radius: 18px;
+  border: 1px solid rgba(122, 164, 221, 0.4);
+  background: rgba(24, 39, 67, 0.66);
+}
+
+.scene-controls-ui .ctrl-toggle-track {
+  position: absolute;
+  left: 16%;
+  top: 16%;
+  width: 38%;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(145, 176, 219, 0.35);
+}
+
+.scene-controls-ui .ctrl-toggle-knob {
+  position: absolute;
+  top: 16%;
+  left: 16%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #53f3ce;
+  box-shadow: 0 0 16px rgba(71, 242, 206, 0.7);
+  animation: tutToggleMove 2.3s ease-in-out infinite;
+}
+
+.scene-controls-ui .ctrl-slider-track {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 46%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(142, 170, 206, 0.35);
+}
+
+.scene-controls-ui .ctrl-slider-fill {
+  position: absolute;
+  left: 16%;
+  top: 46%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #15ceea, #43f1bc);
+  animation: tutSliderFill 2.5s ease-in-out infinite;
+}
+
+.scene-controls-ui .ctrl-slider-knob {
+  position: absolute;
+  top: calc(46% - 7px);
+  left: 24%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ecf6ff;
+  animation: tutKnobSweep 2.5s ease-in-out infinite;
+}
+
+.scene-controls-ui .ctrl-select {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 67%;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(121, 153, 198, 0.5);
+  background: rgba(41, 63, 97, 0.7);
+}
+
+.scene-controls-ui .ctrl-dropdown {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: calc(67% + 36px);
+  height: 48px;
+  border-radius: 0 0 10px 10px;
+  background: rgba(53, 83, 123, 0.7);
+  border: 1px solid rgba(121, 153, 198, 0.45);
+  border-top: none;
+  animation: tutDropdownReveal 2.8s ease-in-out infinite;
+}
+
+.scene-go-path .tut-go-start,
+.scene-go-path .tut-go-target {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(86, 255, 220, 0.86);
+  background: rgba(60, 245, 207, 0.22);
+  box-shadow: 0 0 18px rgba(64, 242, 203, 0.62);
+}
+
+.scene-go-path .tut-go-start {
+  left: 12%;
+  top: 24%;
+}
+
+.scene-go-path .tut-go-target {
+  right: 13%;
+  bottom: 18%;
+}
+
+.scene-go-path .tut-go-trail {
+  position: absolute;
+  inset: 23% 14% 20% 14%;
+  border: 5px solid rgba(96, 239, 220, 0.68);
+  border-radius: 48% 52% 58% 42% / 44% 58% 42% 56%;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(75, 244, 213, 0.5));
+}
+
+.scene-go-path .tut-go-pulse {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #73ffe8;
+  box-shadow: 0 0 16px rgba(99, 255, 229, 0.8);
+  left: 18%;
+  top: 29%;
+  animation: tutTrailPulse 3s linear infinite;
+}
+
+@keyframes tutOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tutOverlayFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tutRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.94);
+    opacity: 0.22;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.03);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.09);
+    opacity: 0.24;
+  }
+}
+
+@keyframes tutDotPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}
+
+@keyframes tutCellGlow {
+  0%,
+  100% {
+    background: rgba(22, 34, 58, 0.88);
+    box-shadow: none;
+  }
+
+  50% {
+    background: rgba(76, 245, 214, 0.85);
+    box-shadow: 0 0 20px rgba(70, 242, 206, 0.62);
+  }
+}
+
+@keyframes tutRunnerTop {
+  0% {
+    left: 10%;
+  }
+
+  100% {
+    left: 84%;
+  }
+}
+
+@keyframes tutRunnerBottom {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  24% {
+    transform: translate(68px, -35px);
+  }
+
+  48% {
+    transform: translate(136px, 12px);
+  }
+
+  72% {
+    transform: translate(206px, -24px);
+  }
+
+  100% {
+    transform: translate(282px, -58px);
+  }
+}
+
+@keyframes tutBrickDrop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-20px);
+  }
+
+  48% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes tutWeightPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 26px rgba(255, 183, 64, 0.58);
+  }
+
+  50% {
+    transform: scale(1.09);
+    box-shadow: 0 0 34px rgba(255, 183, 64, 0.84);
+  }
+}
+
+@keyframes tutKnobSlide {
+  0%,
+  100% {
+    left: 22%;
+  }
+
+  50% {
+    left: 74%;
+  }
+}
+
+@keyframes tutDragDot {
+  0% {
+    left: 15%;
+    bottom: 20%;
+  }
+
+  45% {
+    left: 45%;
+    bottom: 54%;
+  }
+
+  100% {
+    left: 72%;
+    bottom: 66%;
+  }
+}
+
+@keyframes tutCursorFollow {
+  0% {
+    left: 14%;
+    bottom: 28%;
+  }
+
+  45% {
+    left: 42%;
+    bottom: 50%;
+  }
+
+  100% {
+    left: 68%;
+    bottom: 61%;
+  }
+}
+
+@keyframes tutToggleMove {
+  0%,
+  100% {
+    left: 16%;
+  }
+
+  50% {
+    left: 45%;
+  }
+}
+
+@keyframes tutSliderFill {
+  0%,
+  100% {
+    width: 22%;
+  }
+
+  50% {
+    width: 62%;
+  }
+}
+
+@keyframes tutKnobSweep {
+  0%,
+  100% {
+    left: 24%;
+  }
+
+  50% {
+    left: 67%;
+  }
+}
+
+@keyframes tutDropdownReveal {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(-6px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tutTrailPulse {
+  0% {
+    left: 18%;
+    top: 29%;
+  }
+
+  33% {
+    left: 40%;
+    top: 57%;
+  }
+
+  66% {
+    left: 61%;
+    top: 40%;
+  }
+
+  100% {
+    left: 74%;
+    top: 66%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .tut-stage {
+    padding: 18px;
+    gap: 18px;
+  }
+
+  .tut-slide-frame {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 20px;
+  }
+
+  .tut-card {
+    max-width: 100%;
+    padding: 28px 24px;
+  }
+
+  .tut-title {
+    font-size: clamp(32px, 6.3vw, 50px);
+  }
+
+  .tut-body {
+    font-size: clamp(22px, 3.5vw, 30px);
+  }
+}
+
+@media (max-width: 768px) {
+  .tut-stage {
+    width: min(1180px, calc(100vw - 14px));
+    margin: 7px;
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .tut-progress {
+    gap: 8px;
+  }
+
+  .tut-progress-track {
+    gap: 5px;
+  }
+
+  .tut-progress-segment {
+    height: 10px;
+  }
+
+  .tut-progress-label {
+    min-width: 58px;
+    font-size: 15px;
+    padding: 3px 8px;
+  }
+
+  .tut-card {
+    padding: 22px 18px;
+  }
+
+  .tut-chip {
+    min-height: 24px;
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .tut-title {
+    font-size: clamp(29px, 8.6vw, 43px);
+    margin: 13px 0 10px;
+  }
+
+  .tut-body {
+    font-size: clamp(19px, 5.5vw, 25px);
+  }
+
+  .tut-nav {
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .tut-nav-arrows {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .tut-btn {
+    font-size: 16px;
+  }
+
+  .tut-btn-prev {
+    min-width: 104px;
+    padding: 11px 16px;
+  }
+
+  .tut-btn-next {
+    min-width: 138px;
+    padding: 11px 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .tut-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .tut-nav-arrows {
+    justify-content: space-between;
+  }
+
+  .tut-btn-prev,
+  .tut-btn-next {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tut-overlay,
+  .tut-slide-frame,
+  .tut-scene,
+  .tut-progress-segment,
+  .tut-btn {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .scene-welcome-ripple .tut-ring,
+  .scene-welcome-ripple .tut-dot,
+  .scene-grid-activation .grid-cell,
+  .scene-algorithm-race .tut-runner,
+  .scene-obstacles .brick,
+  .scene-obstacles .tut-weight-badge,
+  .scene-obstacles .tut-slider-knob,
+  .scene-drag-recalc .tut-drag-dot,
+  .scene-drag-recalc .tut-cursor,
+  .scene-controls-ui .ctrl-toggle-knob,
+  .scene-controls-ui .ctrl-slider-fill,
+  .scene-controls-ui .ctrl-slider-knob,
+  .scene-controls-ui .ctrl-dropdown,
+  .scene-go-path .tut-go-pulse {
+    animation: none !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+  .tut-overlay {
+    background: rgba(6, 11, 21, 0.94);
+  }
+
+  .tut-card {
+    background: rgba(24, 35, 57, 0.9);
+  }
 }
 
 /*#otherText > ul li {
@@ -422,14 +1394,6 @@
   margin-left: 0;
   margin-right: 0;
 }
-
-/*#tutorial {
-  position: absolute;
-  color: red;
-  height: 50px;
-  width: 200px;
-  z-index: 2;
-}*/
 
 #board td{
   /*border: 1px solid rgb(175, 216, 248);*/
@@ -7685,10 +8649,6 @@ body {
 
 body.panel-open {
   margin-right: 0 !important;
-}
-
-#tutorial {
-  z-index: 1200;
 }
 
 #navbarDiv .navbar {
