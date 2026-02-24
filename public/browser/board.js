@@ -1426,25 +1426,25 @@ Board.prototype.initTutorial = function () {
     {
       chip: "WELCOME",
       title: "Pathfinding, Visualized",
-      body: "Watch algorithms think. See every decision. Understand why a path was chosen.",
+      body: "Watch algorithms think. After each run, open Insight to see step-by-step reasoning and why the path was chosen.",
       sceneKey: "welcome-ripple"
     },
     {
       chip: "THE GRID",
       title: "Every Cell Is a Decision",
-      body: "The board is a map. The start node explores outward, the target node waits. Your job is to shape the terrain.",
+      body: "The board is a map. In most algorithms, the start explores while the target waits; bidirectional search explores from both ends. Shape the terrain with walls and weights.",
       sceneKey: "grid-activation"
     },
     {
       chip: "ALGORITHMS",
       title: "Eight Ways to Search",
-      body: "Pick a strategy. Dijkstra guarantees the best path, DFS dives deep, and A* uses a heuristic shortcut.",
+      body: "Pick a strategy. Dijkstra guarantees the best path, DFS dives deep, and A* uses a heuristic shortcut. Tip: click any algorithm name in the top bar to open its info card.",
       sceneKey: "algorithm-race"
     },
     {
       chip: "OBSTACLES",
       title: "Walls Block. Weights Slow.",
-      body: "Click to build walls. Hold W and click to add weight nodes when a weighted algorithm is selected. Use the slider to dial cost from 0 to 50.",
+      body: "Click to build walls. Hold W and click to add weight nodes for weighted algorithms. Use the slider to dial weight cost from 0 to 50.",
       sceneKey: "obstacles"
     },
     {
@@ -1456,13 +1456,13 @@ Board.prototype.initTutorial = function () {
     {
       chip: "CONTROLS",
       title: "Your Command Center",
-      body: "Algorithms, mazes, weight slider, clear actions, and run history with Load and Replay all live in the sidebar.",
+      body: "Mazes, weight slider, clear actions, and history are in the sidebar. Algorithm and speed selectors are in the bottom control pod.",
       sceneKey: "controls-ui"
     },
     {
       chip: "LET'S GO",
       title: "Hit Visualize!",
-      body: "Pick an algorithm below, press Visualize!, and watch the search unfold. Open the Insight tab to follow the reasoning.",
+      body: "After this intro closes, choose an algorithm and speed in the bottom pod, then press Visualize. Open Insight to follow step reasoning, live metrics, Why This Path, and AI Summary.",
       sceneKey: "go-path"
     }
   ];
@@ -1484,14 +1484,35 @@ Board.prototype.initTutorial = function () {
     prev: document.getElementById("tutPrev"),
     next: document.getElementById("tutNext"),
     skip: document.getElementById("tutSkip"),
+    progressTrack: document.getElementById("tutProgressTrack"),
     progressLabel: document.getElementById("tutProgressLabel"),
-    progressSegments: Array.prototype.slice.call(document.querySelectorAll("#tutProgressTrack .tut-progress-segment")),
+    progressSegments: [],
     illustration: document.getElementById("tutIllustration"),
     scenes: Array.prototype.slice.call(document.querySelectorAll("#tutIllustration .tut-scene"))
   };
 
+  this.buildTutorialProgressSegments();
   this.bindTutorialEvents();
   this.openTutorial(0);
+};
+
+Board.prototype.buildTutorialProgressSegments = function () {
+  if (!this.tutorialElements || !this.tutorialElements.progressTrack) return;
+
+  var track = this.tutorialElements.progressTrack;
+  var totalSlides = this.tutorialSlides ? this.tutorialSlides.length : 0;
+  var segments = [];
+  track.innerHTML = "";
+
+  for (var i = 0; i < totalSlides; i++) {
+    var segment = document.createElement("span");
+    segment.className = "tut-progress-segment";
+    segment.setAttribute("data-step", i.toString());
+    track.appendChild(segment);
+    segments.push(segment);
+  }
+
+  this.tutorialElements.progressSegments = segments;
 };
 
 Board.prototype.bindTutorialEvents = function () {
@@ -1696,6 +1717,11 @@ Board.prototype.updateTutorialProgress = function (index) {
   if (!this.tutorialElements) return;
 
   var segments = this.tutorialElements.progressSegments || [];
+  if (segments.length !== this.tutorialSlides.length) {
+    this.buildTutorialProgressSegments();
+    segments = this.tutorialElements.progressSegments || [];
+  }
+
   for (var i = 0; i < segments.length; i++) {
     segments[i].classList.remove("is-active", "is-complete");
     if (i < index) {
