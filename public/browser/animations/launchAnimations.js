@@ -2,6 +2,7 @@ const weightedSearchAlgorithm = require("../pathfindingAlgorithms/weightedSearch
 const unweightedSearchAlgorithm = require("../pathfindingAlgorithms/unweightedSearchAlgorithm");
 const historyStorage = require("../utils/historyStorage");
 const serializeRun = require("../utils/runSerializer");
+const historyUI = require("../utils/historyUI");
 
 function launchAnimations(board, success, type) {
   var nodes = board.nodesToAnimate.slice(0);
@@ -23,10 +24,39 @@ function launchAnimations(board, success, type) {
     pauseBtn.innerHTML = '<span class="glyphicon glyphicon-pause"></span> Pause';
   }
 
+  var runContext = historyUI && typeof historyUI.getRunContext === "function"
+    ? historyUI.getRunContext(board)
+    : { mode: "visualize", sourceRunId: null };
+
+  if (historyUI && typeof historyUI.setPendingRun === "function") {
+    board.currentRunToken = historyUI.setPendingRun(board, {
+      mode: runContext.mode || "visualize",
+      sourceRunId: runContext.sourceRunId || null,
+      algorithm: board.currentAlgorithm,
+      heuristic: board.currentHeuristic,
+      speed: board.speed,
+      phase: "exploring",
+      current: 0,
+      total: nodes.length,
+      statusText: nodes.length > 0 ? "Exploring 0/" + nodes.length : "Exploring..."
+    });
+  } else {
+    board.currentRunToken = null;
+  }
+
   function onExploreFrame(index) {
+    var progressIndex = nodes.length ? Math.min(index + 1, nodes.length) : 0;
     if (progressEl) {
-      var progressIndex = nodes.length ? Math.min(index + 1, nodes.length) : 0;
       progressEl.textContent = "Exploring " + progressIndex + "/" + nodes.length;
+    }
+
+    if (historyUI && typeof historyUI.updatePendingRun === "function") {
+      historyUI.updatePendingRun(board, board.currentRunToken, {
+        phase: "exploring",
+        current: progressIndex,
+        total: nodes.length,
+        statusText: "Exploring " + progressIndex + "/" + nodes.length
+      });
     }
 
     if (index >= nodes.length) return;
@@ -73,6 +103,13 @@ function launchAnimations(board, success, type) {
       board.displayPathCost(visitedCount);
       var runSummary = serializeRun(board, success, visitedCount);
       historyStorage.saveRun(runSummary);
+      if (historyUI && typeof historyUI.updatePendingRun === "function") {
+        historyUI.updatePendingRun(board, board.currentRunToken, {
+          phase: "finalizing",
+          statusText: "Finalizing run...",
+          persistedRunId: runSummary.id
+        });
+      }
       console.log("[Run Complete]", runSummary);
       return;
     }
@@ -81,6 +118,14 @@ function launchAnimations(board, success, type) {
     board.reset();
     if (controls) controls.classList.add("hidden");
     if (progressEl) progressEl.textContent = "";
+    if (historyUI && typeof historyUI.resolvePendingRun === "function") {
+      historyUI.resolvePendingRun(board, board.currentRunToken, {
+        status: "failed",
+        statusText: "Failed",
+        clearDelayMs: 1200
+      });
+    }
+    board.currentRunToken = null;
     board.toggleButtons();
   }
 
