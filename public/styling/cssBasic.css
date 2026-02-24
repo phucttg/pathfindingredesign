@@ -12,7 +12,7 @@
 
 .start{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-image:url(triangletwo-right.svg);
+  background-image:url(start-arrow.svg);
   /*background-color: rgb(255, 254, 106);*/
   background-position: center;
   background-repeat: no-repeat;
@@ -30,7 +30,7 @@
 .instantshortest-path-up{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-up.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -39,7 +39,7 @@
 .shortest-path-up{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-up.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -56,7 +56,7 @@
 .instantshortest-path-down{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-down.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -65,7 +65,7 @@
 .shortest-path-down{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-down.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -82,7 +82,7 @@
 .instantshortest-path-right{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-right.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -91,7 +91,7 @@
 .shortest-path-right{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-right.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -108,7 +108,7 @@
 .instantshortest-path-left{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-left.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -117,7 +117,7 @@
 .shortest-path-left{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(triangletwo-left.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -134,8 +134,8 @@
 .instantStartTransparent{
   /*border: 1px solid rgb(175, 216, 248);*/
   opacity: 0.5;
-  background-image:url(triangletwo-right.svg);
-  background-color: rgb(255, 254, 106);
+  background-image:url(start-arrow.svg);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -144,8 +144,8 @@
 .startTransparent{
   /*border: 1px solid rgb(175, 216, 248);*/
   opacity: 0.5;
-  background-image:url(triangletwo-right.svg);
-  background-color: rgb(255, 254, 106);
+  background-image:url(start-arrow.svg);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -161,7 +161,7 @@
 
 .visitedStartNodeBlue {
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-image:url(triangletwo-right.svg);
+  background-image:url(start-arrow.svg);
   /*background-color: rgb(255, 254, 106);*/
   background-position: center;
   background-repeat: no-repeat;
@@ -178,7 +178,7 @@
 
 .visitedStartNodePurple {
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-image:url(triangletwo-right.svg);
+  background-image:url(start-arrow.svg);
   /*background-color: rgb(255, 254, 106);*/
   background-position: center;
   background-repeat: no-repeat;
@@ -209,7 +209,7 @@
 }
 
 .visitedTargetNodeBlue {
-  background-image: url(circle.svg);
+  background-image: url(target-crosshair.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -224,7 +224,7 @@
 }
 
 .visitedTargetNodePurple {
-  background-image: url(circle.svg);
+  background-image: url(target-crosshair.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -263,22 +263,22 @@
 @keyframes visitedStartNodeBlueAnimation {
   0% {
     transform: scale(.3);
-    background-color: rgba(0, 0, 66, 0.75);
+    background-color: rgba(30, 0, 80, 0.75);
     border-radius: 100%;
   }
 
   50% {
-    background-color: rgba(17, 104, 217, 0.75);
+    background-color: rgba(88, 28, 200, 0.75);
   }
 
   75% {
     transform: scale(1.2);
-    background-color: rgba(0, 217, 159, 0.75);
+    background-color: rgba(160, 70, 230, 0.75);
   }
 
   100% {
     transform: scale(1.0);
-    background-color: rgba(0, 190, 218, 0.75);
+    background-color: rgba(123, 47, 247, 0.75);
   }
 }
 
@@ -1407,23 +1407,23 @@
 }
 
 .instantvisited{
-  border: 1px solid rgb(175, 216, 248);
-  background-color: rgba(0, 190, 218, 0.75);
+  border: 1px solid rgb(180, 140, 255);
+  background-color: rgba(123, 47, 247, 0.75);
   /*background-color: rgba(178, 67, 255, 0.75);*/
 }
 
 .instantvisited.weight {
-  border: 1px solid rgb(175, 216, 248);
-  background-color: rgba(0, 190, 218, 0.75);
+  border: 1px solid rgb(180, 140, 255);
+  background-color: rgba(123, 47, 247, 0.75);
   /*background-color: rgba(178, 67, 255, 0.75);*/
-  background-image: url(weight.svg);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
 }
 
 .visited{
-  border: 1px solid rgb(175, 216, 248);
+  border: 1px solid rgb(180, 140, 255);
   animation-name: visitedAnimation;
   animation-duration: 1.5s;
   animation-timing-function: ease-out;
@@ -1435,8 +1435,8 @@
 }
 
 .visited.weight{
-  border: 1px solid rgb(175, 216, 248);
-  background-image: url(weight.svg);
+  border: 1px solid rgb(180, 140, 255);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1453,22 +1453,22 @@
 @keyframes visitedAnimation {
   0% {
     transform: scale(.3);
-    background-color: rgba(0, 0, 66, 0.75);
+    background-color: rgba(30, 0, 80, 0.75);
     border-radius: 100%;
   }
 
   50% {
-    background-color: rgba(17, 104, 217, 0.75);
+    background-color: rgba(88, 28, 200, 0.75);
   }
 
   75% {
     transform: scale(1.2);
-    background-color: rgba(0, 217, 159, 0.75)
+    background-color: rgba(160, 70, 230, 0.75)
   }
 
   100% {
     transform: scale(1.0);
-    background-color: rgba(0, 190, 218, 0.75);
+    background-color: rgba(123, 47, 247, 0.75);
   }
 }
 
@@ -1486,17 +1486,17 @@
 @keyframes wallAnimation {
   0% {
     transform: scale(.3);
-    background-color: rgb(12, 53, 71);
+    background-color: rgb(45, 27, 105);
   }
 
   50% {
     transform: scale(1.2);
-    background-color: rgb(12, 53, 71);
+    background-color: rgb(45, 27, 105);
   }
 
   100% {
     transform: scale(1.0);
-    background-color: rgb(12, 53, 71);
+    background-color: rgb(45, 27, 105);
   }
 }
 
@@ -1510,7 +1510,7 @@
   border: 1px solid rgb(175, 216, 248);
   background-color: rgba(178, 67, 255, 0.75);
   /*background-color: rgba(0, 190, 218, 0.75);*/
-  background-image: url(weight.svg);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1532,7 +1532,7 @@
 .visitedobject.weight{
   /*background:red*/
   border: 1px solid rgb(175, 216, 248);
-  background-image: url(weight.svg);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1574,7 +1574,7 @@
 }
 
 .borderlessWeight {
-  background-image: url(weight.svg);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1590,7 +1590,7 @@
 
 .unvisited.weight{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-image: url(weight.svg);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1627,7 +1627,7 @@
 
 .current{
   border: 1px solid rgb(175, 216, 248);
-  background-color: rgb(255, 254, 106)
+  background-color: rgb(57, 255, 20)
 }
 
 .object{
@@ -1651,7 +1651,7 @@
   /*border: 1px solid rgb(175, 216, 248);*/
   opacity: 0.5;
   background-image: url(diamond.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1661,7 +1661,7 @@
   /*border: 1px solid rgb(175, 216, 248);*/
   opacity: 0.5;
   background-image: url(diamond.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1677,7 +1677,7 @@
 
 .target{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-image: url(circle.svg);
+  background-image: url(target-crosshair.svg);
   /*background-color: rgb(255, 254, 106);*/
   /*background-color: rgba(232, 147, 12, 0.75);*/
   background-position: center;
@@ -1712,13 +1712,13 @@
 
 .instantshortest-path{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
 }
 
 .instantshortest-path.weight{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-color: rgb(255, 254, 106);
-  background-image: url(weight.svg);
+  background-color: rgb(57, 255, 20);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1726,7 +1726,7 @@
 
 .shortest-path{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   /*background-position: center;
   background-repeat: no-repeat;
   background-size: contain;*/
@@ -1742,8 +1742,8 @@
 
 .shortest-path.weight{
   /*border: 1px solid rgb(175, 216, 248);*/
-  background-color: rgb(255, 254, 106);
-  background-image: url(weight.svg);
+  background-color: rgb(57, 255, 20);
+  background-image: url(weight-shield.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -1760,24 +1760,24 @@
 @keyframes triangletwo {
   0% {
     transform: scale(.6);
-    background-color: rgb(255, 254, 106);
+    background-color: rgb(57, 255, 20);
   }
 
   50% {
     transform: scale(1.2);
-    background-color: rgb(255, 254, 106);
+    background-color: rgb(57, 255, 20);
   }
 
   100% {
     transform: scale(1.0);
-    background-color: rgb(255, 254, 106);
+    background-color: rgb(57, 255, 20);
   }
 }
 
 .shortest-path-unweighted{
   /*border: 1px solid rgb(175, 216, 248);*/
   background:url(spaceshiptwo-up.svg);
-  background-color: rgb(255, 254, 106);
+  background-color: rgb(57, 255, 20);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain
@@ -9261,18 +9261,18 @@ body.panel-open {
 }
 
 .legend-swatch.visited-static {
-  background-color: rgba(0, 190, 218, 0.75);
-  border: 1px solid rgb(175, 216, 248);
+  background-color: rgba(123, 47, 247, 0.75);
+  border: 1px solid rgb(180, 140, 255);
 }
 
 .legend-swatch.shortest-path-static {
-  background-color: rgb(255, 254, 106);
-  border: 1px solid #f4e86f;
+  background-color: rgb(57, 255, 20);
+  border: 1px solid #2dcc10;
 }
 
 .legend-swatch.wall-static {
-  background-color: rgb(12, 53, 71);
-  border: 1px solid rgb(12, 53, 71);
+  background-color: rgb(45, 27, 105);
+  border: 1px solid rgb(45, 27, 105);
 }
 
 #gridWrapper {
