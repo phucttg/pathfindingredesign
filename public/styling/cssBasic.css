@@ -299,11 +299,6 @@
   padding: 0 28px 0 0;
 }
 
-#actualStartButton {
-  /*color: red;*/
-  background-color: none;
-}
-
 #mainGrid{
   position: absolute;
   z-index: 1;
@@ -445,11 +440,6 @@
   min-height: 25px;
   max-height: 25px;
   box-sizing: border-box;
-}
-
-#startButtonStart {
-  padding-left: 20px;
-  padding-right: 20px;
 }
 
 .instantvisited{
@@ -7769,7 +7759,9 @@ body.panel-open {
 }
 
 #navbarDiv .navbar-primary {
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 #navbarDiv .dropdown-menu {
@@ -7790,8 +7782,7 @@ body.panel-open {
 }
 
 #startButtonStart {
-  padding-left: 4px;
-  padding-right: 4px;
+  margin: 0;
 }
 
 #actualStartButton {
@@ -8141,6 +8132,32 @@ body.panel-open {
   position: relative;
 }
 
+#playbackPod .playback-algo-dropdown {
+  position: relative;
+}
+
+#playbackPod .playback-algo-dropdown > .dropdown-menu {
+  top: auto;
+  bottom: calc(100% + 8px);
+  margin-top: 0;
+  margin-bottom: 0;
+  min-width: 220px;
+  max-height: min(260px, calc(100vh - 140px));
+  overflow-y: auto;
+  z-index: 60;
+}
+
+#playbackPod .playback-algo-dropdown > .dropdown-menu > li {
+  float: none !important;
+  display: block;
+  width: 100%;
+}
+
+#playbackPod .playback-algo-dropdown > .dropdown-menu > li > a {
+  display: block;
+  width: 100%;
+}
+
 #playbackPod .playback-speed-dropdown > .dropdown-menu {
   top: auto;
   bottom: calc(100% + 8px);
@@ -8171,6 +8188,83 @@ body.panel-open {
   color: #eef4fb;
   font-size: 12px;
   padding: 6px 12px;
+}
+
+#playbackPod #algoSelectBtn {
+  margin: 0;
+  border-radius: 9999px;
+  border-color: #4a5d70;
+  background: #2b3a49;
+  color: #eef4fb;
+  font-size: 12px;
+  padding: 6px 12px;
+  min-width: 178px;
+  text-align: left;
+}
+
+#playbackPod #algoSelectBtn .caret {
+  float: right;
+  margin-top: 7px;
+}
+
+#playbackPod #algoSelectBtn:hover,
+#playbackPod #algoSelectBtn:focus {
+  background: #33485b;
+  color: #fff;
+}
+
+#playbackPod .playback-visualize {
+  display: flex;
+  align-items: center;
+}
+
+#playbackPod #actualStartButton {
+  margin: 0;
+  border-radius: 9999px;
+}
+
+#playbackPod .control-disabled {
+  opacity: 0.55;
+}
+
+#playbackPod .dropdown.control-disabled {
+  pointer-events: none;
+}
+
+#playbackPod .dropdown-menu > li.control-disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+#playbackPod .dropdown-menu > li.control-disabled > a {
+  cursor: not-allowed;
+}
+
+#playbackPod .btn.control-disabled {
+  pointer-events: none;
+}
+
+#sidebar .control-disabled {
+  opacity: 0.55;
+}
+
+#algoSelectBtn.pulse {
+  animation: algoSelectPulse 1.2s ease;
+}
+
+@keyframes algoSelectPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.65);
+    transform: scale(1);
+  }
+  45% {
+    box-shadow: 0 0 0 12px rgba(231, 76, 60, 0);
+    transform: scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    transform: scale(1);
+  }
 }
 
 #playbackPod #adjustSpeed:hover,
@@ -8345,6 +8439,13 @@ body.panel-open {
   background: #ecf5ff;
 }
 
+#historyList .history-item-actions button.control-disabled,
+#historyList .history-clear-all button.control-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 #historyList .history-empty {
   padding: 16px 8px;
   text-align: center;
@@ -8397,10 +8498,23 @@ body.panel-open {
     padding: 0 10px;
   }
 
+  #navbarDiv .navbar-primary {
+    gap: 2px;
+  }
+
+  #navbarDiv .navbar-primary > li > a {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
   #navbarDiv .navbar-zone-config {
     flex: 1 1 auto;
     justify-content: flex-start;
     overflow-x: auto;
+  }
+
+  #playbackPod #algoSelectBtn {
+    min-width: 154px;
   }
 
   #sidebar {
@@ -8435,6 +8549,21 @@ body.panel-open {
   }
 }
 
+@media (max-width: 991px) {
+  #navbarDiv .navbar-primary {
+    display: none !important;
+  }
+
+  #navbarDiv .navbar-zone-config {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  #playbackPod #algoSelectBtn {
+    min-width: 132px;
+  }
+}
+
 @media (max-width: 899px) {
   #sidebar {
     position: fixed;
@@ -8466,6 +8595,7 @@ body.panel-open {
     justify-content: center;
     gap: 8px;
     padding: 8px 10px;
+    flex-wrap: wrap;
   }
 
   #playbackPod .pod-progress {
