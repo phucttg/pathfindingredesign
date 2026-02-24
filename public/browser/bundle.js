@@ -525,7 +525,7 @@ Board.prototype.initialise = function () {
   this.bindNavInfoOnlyHandlers();
   this.setAlgorithmSelectionUI("Select Algorithm");
   this.setInteractiveControlsEnabled(false);
-  this.toggleTutorialButtons();
+  this.initTutorial();
 };
 
 Board.prototype.initSidebar = function () {
@@ -1798,61 +1798,332 @@ Board.prototype.changeStartNodeImages = function () {
   }
 };
 
-let counter = 1;
-Board.prototype.toggleTutorialButtons = function () {
+Board.prototype.initTutorial = function () {
+  var overlay = document.getElementById("tutorialOverlay");
+  if (!overlay) return;
 
-  document.getElementById("skipButton").onclick = () => {
-    document.getElementById("tutorial").style.display = "none";
-    mazeSelector.showOnboardingModal(this);
-  }
-
-  if (document.getElementById("nextButton")) {
-    document.getElementById("nextButton").onclick = () => {
-      if (counter < 8) counter++;
-      nextPreviousClick();
-      this.toggleTutorialButtons();
+  this.tutorialSlides = [
+    {
+      chip: "WELCOME",
+      title: "Pathfinding, Visualized",
+      body: "Watch algorithms think. See every decision. Understand why a path was chosen.",
+      sceneKey: "welcome-ripple"
+    },
+    {
+      chip: "THE GRID",
+      title: "Every Cell Is a Decision",
+      body: "The board is a map. The start node explores outward, the target node waits. Your job is to shape the terrain.",
+      sceneKey: "grid-activation"
+    },
+    {
+      chip: "ALGORITHMS",
+      title: "Eight Ways to Search",
+      body: "Pick a strategy. Dijkstra guarantees the best path, DFS dives deep, and A* uses a heuristic shortcut.",
+      sceneKey: "algorithm-race"
+    },
+    {
+      chip: "OBSTACLES",
+      title: "Walls Block. Weights Slow.",
+      body: "Click to build walls. Hold W and click to add weight nodes when a weighted algorithm is selected. Use the slider to dial cost from 0 to 50.",
+      sceneKey: "obstacles"
+    },
+    {
+      chip: "ENDPOINTS",
+      title: "Drag. Drop. Recalculate.",
+      body: "Move start or target anywhere. After a completed run, repositioning triggers an instant recalculation so comparisons are fast.",
+      sceneKey: "drag-recalc"
+    },
+    {
+      chip: "CONTROLS",
+      title: "Your Command Center",
+      body: "Algorithms, mazes, weight slider, clear actions, and run history with Load and Replay all live in the sidebar.",
+      sceneKey: "controls-ui"
+    },
+    {
+      chip: "LET'S GO",
+      title: "Hit Visualize!",
+      body: "Pick an algorithm below, press Visualize!, and watch the search unfold. Open the Insight tab to follow the reasoning.",
+      sceneKey: "go-path"
     }
+  ];
+
+  this.tutorialIndex = 0;
+  this.tutorialOpen = false;
+  this.tutorialClosing = false;
+  this.tutorialAnimating = false;
+  this.tutorialEventsBound = false;
+  this.tutorialTransitionTimer = null;
+  this.tutorialCloseTimer = null;
+  this.tutorialRestoreFocusEl = null;
+  this.tutorialElements = {
+    overlay: overlay,
+    frame: document.getElementById("tutSlideFrame"),
+    chip: document.getElementById("tutChip"),
+    title: document.getElementById("tutTitle"),
+    body: document.getElementById("tutBody"),
+    prev: document.getElementById("tutPrev"),
+    next: document.getElementById("tutNext"),
+    skip: document.getElementById("tutSkip"),
+    progressLabel: document.getElementById("tutProgressLabel"),
+    progressSegments: Array.prototype.slice.call(document.querySelectorAll("#tutProgressTrack .tut-progress-segment")),
+    illustration: document.getElementById("tutIllustration"),
+    scenes: Array.prototype.slice.call(document.querySelectorAll("#tutIllustration .tut-scene"))
+  };
+
+  this.bindTutorialEvents();
+  this.openTutorial(0);
+};
+
+Board.prototype.bindTutorialEvents = function () {
+  if (this.tutorialEventsBound || !this.tutorialElements || !this.tutorialElements.overlay) return;
+
+  var board = this;
+  var overlay = this.tutorialElements.overlay;
+  var nextButton = this.tutorialElements.next;
+  var prevButton = this.tutorialElements.prev;
+  var skipButton = this.tutorialElements.skip;
+
+  if (nextButton) {
+    nextButton.addEventListener("click", function () {
+      if (!board.tutorialOpen || board.tutorialAnimating || board.tutorialClosing) return;
+      if (board.tutorialIndex >= board.tutorialSlides.length - 1) {
+        board.closeTutorial();
+        return;
+      }
+      board.renderTutorialSlide(board.tutorialIndex + 1, "forward");
+    });
   }
 
-  document.getElementById("previousButton").onclick = () => {
-    if (counter > 1) counter--;
-    nextPreviousClick();
-    this.toggleTutorialButtons()
+  if (prevButton) {
+    prevButton.addEventListener("click", function () {
+      if (!board.tutorialOpen || board.tutorialAnimating || board.tutorialClosing) return;
+      if (board.tutorialIndex <= 0) return;
+      board.renderTutorialSlide(board.tutorialIndex - 1, "back");
+    });
   }
 
-  let board = this;
-  function nextPreviousClick() {
-    if (counter === 1) {
-      document.getElementById("tutorial").innerHTML = `<h3>Welcome to Pathfinding Visualizer!</h3><h6>This short tutorial will walk you through all of the features of this application.</h6><p>If you want to dive right in, feel free to press the "Skip Tutorial" button below. Otherwise, press "Next"!</p><div id="tutorialCounter">1/9</div><img id="mainTutorialImage" src="public/styling/c_icon.png"><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 2) {
-      document.getElementById("tutorial").innerHTML = `<h3>What is a pathfinding algorithm?</h3><h6>At its core, a pathfinding algorithm seeks to find the shortest path between two points. This application visualizes various pathfinding algorithms in action, and more!</h6><p>All of the algorithms on this application are adapted for a 2D grid, where 90 degree turns have a "cost" of 1 and movements from a node to another have a "cost" of 1.</p><div id="tutorialCounter">${counter}/9</div><img id="mainTutorialImage" src="public/styling/path.png"><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 3) {
-      document.getElementById("tutorial").innerHTML = `<h3>Picking an algorithm</h3><h6>Choose an algorithm from the "Algorithms" drop-down menu.</h6><p>Note that some algorithms are <i><b>unweighted</b></i>, while others are <i><b>weighted</b></i>. Unweighted algorithms do not take turns or weight nodes into account, whereas weighted ones do. Additionally, not all algorithms guarantee the shortest path. </p><img id="secondTutorialImage" src="public/styling/algorithms.png"><div id="tutorialCounter">${counter}/9</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-      document.getElementById("tutorial").innerHTML = `<h3>Picking an algorithm</h3><h6>Choose an algorithm from the "Algorithms" drop-down menu.</h6><p>Note that some algorithms are <i><b>unweighted</b></i>, while others are <i><b>weighted</b></i>. Unweighted algorithms do not take turns or weight nodes into account, whereas weighted ones do. Additionally, not all algorithms guarantee the shortest path. </p><img id="secondTutorialImage" src="public/styling/algorithms.png"><div id="tutorialCounter">${counter}/8</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 4) {
-      document.getElementById("tutorial").innerHTML = `<h3>Meet the algorithms</h3><h6>Not all algorithms are created equal.</h6><ul><li><b>Dijkstra's Algorithm</b> (weighted): the father of pathfinding algorithms; guarantees the shortest path</li><li><b>A* Search</b> (weighted): arguably the best pathfinding algorithm; uses heuristics to guarantee the shortest path much faster than Dijkstra's Algorithm</li><li><b>Greedy Best-first Search</b> (weighted): a faster, more heuristic-heavy version of A*; does not guarantee the shortest path</li><li><b>Swarm Algorithm</b> (weighted): a mixture of Dijkstra's Algorithm and A*; does not guarantee the shortest-path</li><li><b>Convergent Swarm Algorithm</b> (weighted): the faster, more heuristic-heavy version of Swarm; does not guarantee the shortest path</li><li><b>Bidirectional Swarm Algorithm</b> (weighted): Swarm from both sides; does not guarantee the shortest path</li><li><b>Breath-first Search</b> (unweighted): a great algorithm; guarantees the shortest path</li><li><b>Depth-first Search</b> (unweighted): a very bad algorithm for pathfinding; does not guarantee the shortest path</li></ul><div id="tutorialCounter">${counter}/8</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 5) {
-      document.getElementById("tutorial").innerHTML = `<h3>Adding walls and weights</h3><h6>Click on the grid to add a wall. Click on the grid while pressing W to add a weight. Generate mazes and patterns from the Maze section in the left sidebar.</h6><p>Walls are impenetrable, meaning that a path cannot cross through them. Weights are not impassable, they just cost more. Each step has a base cost of 1. Turning adds extra cost (90-degree turn +1, 180-degree turn +2). Weights add the slider value (0-50). Set weight to 0 to make a normal node.</p><img id="secondTutorialImage" src="public/styling/walls.gif"><div id="tutorialCounter">${counter}/8</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 6) {
-      document.getElementById("tutorial").innerHTML = `<h3>Dragging nodes</h3><h6>Click and drag the start and target nodes to move them.</h6><p>Note that you can drag nodes even after an algorithm has finished running. This will allow you to instantly see different paths.</p><img src="public/styling/dragging.gif"><div id="tutorialCounter">${counter}/8</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 7) {
-      document.getElementById("tutorial").innerHTML = `<h3>Visualizing and more</h3><h6>Use the navbar buttons to visualize algorithms and to do other stuff!</h6><p>You can clear the current path, clear walls and weights, clear the entire board, and adjust the visualization speed, all from the navbar. If you want to access this tutorial again, click on "Pathfinding Visualizer" in the top left corner of your screen.</p><img id="secondTutorialImage" src="public/styling/navbar.png"><div id="tutorialCounter">${counter}/8</div><button id="nextButton" class="btn btn-default navbar-btn" type="button">Next</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-    } else if (counter === 8) {
-      document.getElementById("tutorial").innerHTML = `<h3>Enjoy!</h3><h6>I hope you have just as much fun playing around with this visualization tool as I had building it!</h6><p>If you want to see the source code for this application, check out my <a href="https://github.com/clementmihailescu/Pathfinding-Visualizer">github</a>.</p><div id="tutorialCounter">${counter}/8</div><button id="finishButton" class="btn btn-default navbar-btn" type="button">Finish</button><button id="previousButton" class="btn btn-default navbar-btn" type="button">Previous</button><button id="skipButton" class="btn btn-default navbar-btn" type="button">Skip Tutorial</button>`
-      document.getElementById("finishButton").onclick = () => {
-        document.getElementById("tutorial").style.display = "none";
-        mazeSelector.showOnboardingModal(board);
+  if (skipButton) {
+    skipButton.addEventListener("click", function () {
+      if (!board.tutorialOpen || board.tutorialClosing) return;
+      board.closeTutorial();
+    });
+  }
+
+  overlay.addEventListener("keydown", function (event) {
+    if (!board.tutorialOpen) return;
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      if (board.tutorialAnimating || board.tutorialClosing) return;
+      if (board.tutorialIndex >= board.tutorialSlides.length - 1) {
+        board.closeTutorial();
+      } else {
+        board.renderTutorialSlide(board.tutorialIndex + 1, "forward");
+      }
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      if (board.tutorialAnimating || board.tutorialClosing) return;
+      if (board.tutorialIndex > 0) {
+        board.renderTutorialSlide(board.tutorialIndex - 1, "back");
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (!board.tutorialClosing) board.closeTutorial();
+      return;
+    }
+
+    if (event.key === "Tab") {
+      var focusables = Array.prototype.slice.call(
+        overlay.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")
+      ).filter(function (element) {
+        return !element.disabled && element.offsetParent !== null;
+      });
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
+  });
+
+  this.tutorialEventsBound = true;
+};
+
+Board.prototype.openTutorial = function (startIndex) {
+  if (!this.tutorialElements || !this.tutorialElements.overlay) return;
+
+  if (this.tutorialCloseTimer) {
+    clearTimeout(this.tutorialCloseTimer);
+    this.tutorialCloseTimer = null;
   }
 
+  if (this.tutorialTransitionTimer) {
+    clearTimeout(this.tutorialTransitionTimer);
+    this.tutorialTransitionTimer = null;
+  }
+
+  this.tutorialClosing = false;
+  this.tutorialAnimating = false;
+  this.tutorialOpen = true;
+
+  var overlay = this.tutorialElements.overlay;
+  overlay.classList.remove("tut-hidden", "tut-closing");
+  overlay.setAttribute("aria-hidden", "false");
+
+  if (document.activeElement && typeof document.activeElement.blur === "function") {
+    this.tutorialRestoreFocusEl = document.activeElement;
+  } else {
+    this.tutorialRestoreFocusEl = null;
+  }
+
+  this.renderTutorialSlide(typeof startIndex === "number" ? startIndex : 0, "forward", true);
+
+  if (this.tutorialElements.next) {
+    this.tutorialElements.next.focus();
+  }
+};
+
+Board.prototype.closeTutorial = function () {
+  if (!this.tutorialElements || !this.tutorialElements.overlay || this.tutorialClosing) return;
+
+  this.tutorialOpen = false;
+  this.tutorialClosing = true;
+  this.tutorialAnimating = false;
+
+  if (this.tutorialTransitionTimer) {
+    clearTimeout(this.tutorialTransitionTimer);
+    this.tutorialTransitionTimer = null;
+  }
+
+  var board = this;
+  var overlay = this.tutorialElements.overlay;
+  overlay.classList.add("tut-closing");
+  overlay.setAttribute("aria-hidden", "true");
+
+  this.tutorialCloseTimer = setTimeout(function () {
+    overlay.classList.remove("tut-closing");
+    overlay.classList.add("tut-hidden");
+    board.tutorialClosing = false;
+    board.tutorialCloseTimer = null;
+    if (board.tutorialRestoreFocusEl && document.body.contains(board.tutorialRestoreFocusEl)) {
+      board.tutorialRestoreFocusEl.focus();
+    }
+    mazeSelector.showOnboardingModal(board);
+  }, 300);
+};
+
+Board.prototype.renderTutorialSlide = function (index, direction, immediate) {
+  if (!this.tutorialElements || !this.tutorialSlides || !this.tutorialSlides.length) return;
+
+  var totalSlides = this.tutorialSlides.length;
+  var nextIndex = Math.max(0, Math.min(index, totalSlides - 1));
+  this.tutorialIndex = nextIndex;
+
+  var board = this;
+  var frame = this.tutorialElements.frame;
+  var applyContent = function () {
+    var slide = board.tutorialSlides[nextIndex];
+    if (board.tutorialElements.chip) board.tutorialElements.chip.textContent = slide.chip;
+    if (board.tutorialElements.title) board.tutorialElements.title.textContent = slide.title;
+    if (board.tutorialElements.body) board.tutorialElements.body.textContent = slide.body;
+    board.renderIllustrationScene(slide.sceneKey);
+    board.updateTutorialProgress(nextIndex);
+    board.updateTutorialNav(nextIndex);
+  };
+
+  if (!frame) {
+    applyContent();
+    return;
+  }
+
+  if (this.tutorialTransitionTimer) {
+    clearTimeout(this.tutorialTransitionTimer);
+    this.tutorialTransitionTimer = null;
+  }
+
+  frame.classList.remove("tut-direction-forward", "tut-direction-back");
+  frame.classList.add(direction === "back" ? "tut-direction-back" : "tut-direction-forward");
+
+  if (immediate) {
+    frame.classList.remove("tut-is-transitioning");
+    applyContent();
+    this.tutorialAnimating = false;
+    return;
+  }
+
+  this.tutorialAnimating = true;
+  frame.classList.add("tut-is-transitioning");
+  this.tutorialTransitionTimer = setTimeout(function () {
+    applyContent();
+    frame.classList.remove("tut-is-transitioning");
+    board.tutorialAnimating = false;
+    board.tutorialTransitionTimer = null;
+  }, 170);
+};
+
+Board.prototype.updateTutorialProgress = function (index) {
+  if (!this.tutorialElements) return;
+
+  var segments = this.tutorialElements.progressSegments || [];
+  for (var i = 0; i < segments.length; i++) {
+    segments[i].classList.remove("is-active", "is-complete");
+    if (i < index) {
+      segments[i].classList.add("is-complete");
+    } else if (i === index) {
+      segments[i].classList.add("is-active");
+    }
+  }
+
+  if (this.tutorialElements.progressLabel) {
+    this.tutorialElements.progressLabel.textContent = (index + 1) + " / " + this.tutorialSlides.length;
+  }
+};
+
+Board.prototype.updateTutorialNav = function (index) {
+  if (!this.tutorialElements) return;
+
+  if (this.tutorialElements.prev) {
+    this.tutorialElements.prev.disabled = index <= 0;
+  }
+
+  if (this.tutorialElements.next) {
+    this.tutorialElements.next.textContent = index >= this.tutorialSlides.length - 1 ? "Start Exploring" : "Continue";
+  }
+};
+
+Board.prototype.renderIllustrationScene = function (sceneKey) {
+  if (!this.tutorialElements || !this.tutorialElements.scenes) return;
+
+  if (this.tutorialElements.illustration) {
+    this.tutorialElements.illustration.setAttribute("data-scene", sceneKey);
+  }
+
+  this.tutorialElements.scenes.forEach(function (scene) {
+    scene.classList.toggle("is-active", scene.getAttribute("data-scene") === sceneKey);
+  });
 };
 
 Board.prototype.toggleButtons = function () {
   var refreshButton = document.getElementById("refreshButton");
   if (refreshButton) {
-    refreshButton.onclick = () => {
-      window.location.reload(true);
+    refreshButton.onclick = (event) => {
+      if (event) event.preventDefault();
+      if (event && event.shiftKey) {
+        window.location.reload(true);
+        return;
+      }
+      this.openTutorial(0);
     };
   }
 
