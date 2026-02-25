@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "node tests/weightImpactAnalyzer.test.js",
+    "test": "node tests/weightImpactAnalyzer.test.js && node tests/algorithmDescriptionsSchema.test.js",
     "build:client": "browserify public/browser/board.js -o public/browser/bundle.js",
     "watch:client": "watchify public/browser/board.js -o public/browser/bundle.js -v",
     "watch": "npm run watch:client"
