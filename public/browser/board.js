@@ -11,6 +11,7 @@ const historyUI = require("./utils/historyUI");
 const weightImpactAnalyzer = require("./utils/weightImpactAnalyzer");
 const algorithmDescriptions = require("./utils/algorithmDescriptions");
 const algorithmModal = require("./utils/algorithmModal");
+const algorithmCompare = require("./utils/algorithmCompare");
 const AnimationController = require("./animations/animationController");
 const mazeSelector = require("./utils/mazeSelector");
 
@@ -200,6 +201,7 @@ Board.prototype.initSidebar = function () {
   var sidebarClearWalls = document.getElementById("sidebarClearWalls");
   var sidebarClearBoard = document.getElementById("sidebarClearBoard");
   var algoInfoBtn = document.getElementById("algoInfoBtn");
+  var compareAllBtn = document.getElementById("compareAllBtn");
 
   if (toggleButton) {
     toggleButton.addEventListener("click", function () {
@@ -245,6 +247,12 @@ Board.prototype.initSidebar = function () {
       if (!currentObject.currentAlgorithm) return;
       var key = algorithmDescriptions.getAlgorithmKey(currentObject.currentAlgorithm, currentObject.currentHeuristic);
       algorithmModal.showAlgorithmInfo(key);
+    });
+  }
+
+  if (compareAllBtn) {
+    compareAllBtn.addEventListener("click", function () {
+      algorithmCompare.showComparisonModal();
     });
   }
 
@@ -548,6 +556,7 @@ Board.prototype.setInteractiveControlsEnabled = function (isEnabled) {
   var sidebarClearPath = document.getElementById("sidebarClearPath");
   var sidebarClearWalls = document.getElementById("sidebarClearWalls");
   var sidebarClearBoard = document.getElementById("sidebarClearBoard");
+  var compareAllBtn = document.getElementById("compareAllBtn");
   var algoDropdown = document.querySelector("#playbackPod .playback-algo-dropdown");
   var speedDropdown = document.querySelector("#playbackPod .playback-speed-dropdown");
   var dropdowns = document.querySelectorAll("#playbackPod .dropdown");
@@ -578,6 +587,10 @@ Board.prototype.setInteractiveControlsEnabled = function (isEnabled) {
   if (sidebarClearBoard) {
     sidebarClearBoard.disabled = isDisabled;
     sidebarClearBoard.classList.toggle("control-disabled", isDisabled);
+  }
+  if (compareAllBtn) {
+    compareAllBtn.disabled = isDisabled;
+    compareAllBtn.classList.toggle("control-disabled", isDisabled);
   }
   if (algoDropdown) {
     algoDropdown.classList.toggle("control-disabled", isDisabled);
@@ -1462,7 +1475,7 @@ Board.prototype.changeStartNodeImages = function () {
   let guaranteed = ["dijkstra", "astar"];
   let name = "";
   if (this.currentAlgorithm === "bfs") {
-    name = "Breath-first Search";
+    name = "Breadth-first Search";
   } else if (this.currentAlgorithm === "dfs") {
     name = "Depth-first Search";
   } else if (this.currentAlgorithm === "dijkstra") {
