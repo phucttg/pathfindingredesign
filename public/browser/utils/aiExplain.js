@@ -1,47 +1,87 @@
 var gridMetrics = require("./gridMetrics");
+var algorithmDescriptions = require("./algorithmDescriptions");
 
 var ALGORITHM_META = {
   dijkstra: {
     algorithmFamily: "weighted",
     guaranteesOptimal: true,
+    complete: true,
     usesHeuristic: false,
-    selectionRule: "Always picks the node with the lowest total distance from start."
+    selectionRule: "Always picks the unvisited node with the lowest known path cost g(n).",
+    bestFor: "Weighted shortest-path problems that require guaranteed optimality.",
+    weakness: "Can explore many unnecessary nodes on large open maps."
   },
   astar: {
     algorithmFamily: "weighted",
     guaranteesOptimal: true,
+    complete: true,
     usesHeuristic: true,
-    selectionRule: "Picks the node with lowest estimated total cost (distance so far plus guess to target)."
+    selectionRule: "Picks the node with the lowest estimated total cost f(n) = g(n) + h(n).",
+    bestFor: "Fast optimal routing when the heuristic is admissible.",
+    weakness: "A weak heuristic can degrade toward Dijkstra-level exploration."
   },
   greedy: {
     algorithmFamily: "weighted",
     guaranteesOptimal: false,
+    complete: true,
     usesHeuristic: true,
-    selectionRule: "Always picks the node that looks closest to the target, ignoring distance traveled."
+    selectionRule: "Always picks the node that appears closest to the target using h(n) only.",
+    bestFor: "Quick approximate pathfinding when response time is the main goal.",
+    weakness: "Can return expensive detours because it ignores path cost-so-far."
   },
-  CLA: {
+  swarm: {
     algorithmFamily: "weighted",
     guaranteesOptimal: false,
+    complete: true,
     usesHeuristic: true,
-    selectionRule: "Blends distance traveled with estimated remaining distance."
+    selectionRule: "Blends traveled cost and heuristic guidance into one ranking score.",
+    bestFor: "Balanced visual performance in interactive demos.",
+    weakness: "Score tuning can produce unstable path quality across maps."
+  },
+  convergentSwarm: {
+    algorithmFamily: "weighted",
+    guaranteesOptimal: false,
+    complete: true,
+    usesHeuristic: true,
+    selectionRule: "Uses an aggressively powered heuristic to converge toward target quickly.",
+    bestFor: "Fast visual convergence when strict optimality is not required.",
+    weakness: "Strong heuristic bias can cross costly regions and miss lower-cost routes."
   },
   bidirectional: {
     algorithmFamily: "weighted",
     guaranteesOptimal: false,
+    complete: "variant-dependent",
     usesHeuristic: true,
-    selectionRule: "Searches from both start and target at the same time, meeting in the middle."
+    selectionRule: "Expands from start and target simultaneously and merges at a meeting node.",
+    bestFor: "Large maps where meeting in the middle reduces search depth.",
+    weakness: "Merge quality and scoring asymmetry can reduce final path quality."
   },
   bfs: {
     algorithmFamily: "unweighted",
     guaranteesOptimal: true,
+    complete: true,
     usesHeuristic: false,
-    selectionRule: "Explores all neighbors at current distance before going further."
+    selectionRule: "Explores all nodes at depth d before exploring depth d+1.",
+    bestFor: "Shortest path by steps on unweighted grids.",
+    weakness: "Not suitable for weighted cost optimization."
   },
   dfs: {
     algorithmFamily: "unweighted",
     guaranteesOptimal: false,
+    complete: true,
     usesHeuristic: false,
-    selectionRule: "Goes as deep as possible in one direction before backtracking."
+    selectionRule: "Follows one branch as deep as possible before backtracking.",
+    bestFor: "Reachability checks and structure traversal.",
+    weakness: "Path quality is highly order-dependent and often non-optimal."
+  },
+  CLA: {
+    algorithmFamily: "weighted",
+    guaranteesOptimal: false,
+    complete: true,
+    usesHeuristic: true,
+    selectionRule: "Blends traveled cost and heuristic guidance into one ranking score.",
+    bestFor: "Legacy fallback for Swarm variants.",
+    weakness: "Use canonical swarm keys for precise behavior labels."
   }
 };
 
@@ -52,8 +92,9 @@ function idToReadable(id) {
 }
 
 function buildRunDigest(board, visitedCount, pathLength) {
-  var algoKey = board.currentAlgorithm || "dijkstra";
-  var meta = ALGORITHM_META[algoKey] || ALGORITHM_META.dijkstra;
+  var algoInternal = board.currentAlgorithm || "dijkstra";
+  var algoKey = algorithmDescriptions.getAlgorithmKey(algoInternal, board.currentHeuristic);
+  var meta = ALGORITHM_META[algoKey] || ALGORITHM_META[algoInternal] || ALGORITHM_META.dijkstra;
   var metrics = gridMetrics.calculateGridMetrics(board);
 
   var visitedSample = [];
@@ -93,6 +134,7 @@ function buildRunDigest(board, visitedCount, pathLength) {
   }
 
   return {
+    algorithmInternal: algoInternal,
     algorithmKey: algoKey,
     meta: meta,
     start: idToReadable(board.start),
