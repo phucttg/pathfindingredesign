@@ -4,6 +4,7 @@ const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const app = express();
+const LANGUAGE_POLICY = "english";
 
 // === SECURITY HEADERS ===
 app.use(helmet({
@@ -103,7 +104,7 @@ async function callOpenAI(apiKey, digest) {
       messages: [
         {
           role: "system",
-          content: "You are an educational assistant explaining pathfinding algorithms to beginners.\n\nSTRICT RULES:\n1. Output EXACTLY 5 sentences.\n2. One sentence must start with \"If\" and describe a counterfactual.\n3. Use simple English (Feynman-level). NO jargon like \"heuristic\", \"priority queue\", \"relaxation\", \"frontier\".\n4. ONLY use facts from the provided digest. Never invent numbers or steps.\n5. Describe what happened in THIS run, not how the algorithm works in general.\n6. Do NOT give advice, tips, or suggestions.\n7. Start with what the algorithm did, then describe the result.\n8. You MUST explicitly mention these numbers: visited count, grid coverage percent, path length, straight-line distance, detour steps (or say no detour), wall count, weight nodes on grid, and weight nodes in the final path."
+          content: buildSystemPrompt()
         },
         {
           role: "user",
@@ -133,12 +134,23 @@ function buildPrompt(digest) {
     "Include one sentence that starts with 'If' and describes a counterfactual. " +
     "You must mention visited count, grid coverage percent, path length, straight-line distance, detour steps (or say no detour), wall count, weight nodes on grid, and weight nodes in the final path.\n\n";
 
+  prompt += "Language policy: " + LANGUAGE_POLICY + "\n";
+
   prompt += "Algorithm: " + algoName + "\n";
   prompt += "Algorithm type: " + (meta.algorithmFamily || "unknown") + "\n";
   prompt += "Guarantees shortest path: " + (meta.guaranteesOptimal ? "yes" : "no") + "\n";
+  if (meta.complete !== undefined && meta.complete !== null) {
+    prompt += "Complete: " + formatComplete(meta.complete) + "\n";
+  }
 
   if (meta.selectionRule) {
     prompt += "How it picks nodes: " + meta.selectionRule + "\n";
+  }
+  if (meta.bestFor) {
+    prompt += "Best use case: " + meta.bestFor + "\n";
+  }
+  if (meta.weakness) {
+    prompt += "Known weakness: " + meta.weakness + "\n";
   }
 
   prompt += "\n";
@@ -182,12 +194,26 @@ function formatAlgorithmName(key) {
     greedy: "Greedy Best-first Search",
     CLA: "Swarm Algorithm",
     swarm: "Swarm Algorithm",
+    convergentSwarm: "Convergent Swarm Algorithm",
     "convergent swarm": "Convergent Swarm Algorithm",
     bidirectional: "Bidirectional Swarm",
     bfs: "Breadth-first Search",
     dfs: "Depth-first Search"
   };
   return names[key] || key;
+}
+
+function formatComplete(value) {
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  return "variant-dependent";
+}
+
+function buildSystemPrompt() {
+  if (LANGUAGE_POLICY !== "english") {
+    return "You are an educational assistant explaining pathfinding algorithms to beginners.\n\nSTRICT RULES:\n1. Output EXACTLY 5 sentences.\n2. One sentence must start with \"If\" and describe a counterfactual.\n3. Use plain beginner-friendly wording and avoid heavy jargon.\n4. ONLY use facts from the provided digest. Never invent numbers or steps.\n5. Describe what happened in THIS run, not how the algorithm works in general.\n6. Do NOT give advice, tips, or suggestions.\n7. Start with what the algorithm did, then describe the result.\n8. You MUST explicitly mention these numbers: visited count, grid coverage percent, path length, straight-line distance, detour steps (or say no detour), wall count, weight nodes on grid, and weight nodes in the final path.";
+  }
+  return "You are an educational assistant explaining pathfinding algorithms to beginners.\n\nSTRICT RULES:\n1. Output EXACTLY 5 sentences.\n2. One sentence must start with \"If\" and describe a counterfactual.\n3. Use simple English (Feynman-level). NO jargon like \"heuristic\", \"priority queue\", \"relaxation\", \"frontier\".\n4. ONLY use facts from the provided digest. Never invent numbers or steps.\n5. Describe what happened in THIS run, not how the algorithm works in general.\n6. Do NOT give advice, tips, or suggestions.\n7. Start with what the algorithm did, then describe the result.\n8. You MUST explicitly mention these numbers: visited count, grid coverage percent, path length, straight-line distance, detour steps (or say no detour), wall count, weight nodes on grid, and weight nodes in the final path.";
 }
 
 function generateFallback(digest) {
