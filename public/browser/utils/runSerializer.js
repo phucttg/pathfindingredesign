@@ -4,6 +4,7 @@
  * 
  * @module utils/runSerializer
  */
+var algorithmDescriptions = require("./algorithmDescriptions");
 
 function serializeRun(board, success, visitedCount) {
     var timestamp = Date.now();
@@ -29,6 +30,8 @@ function serializeRun(board, success, visitedCount) {
 
         settings: {
             algorithm: board.currentAlgorithm,
+            algorithmInternal: board.currentAlgorithm,
+            algorithmKey: algorithmDescriptions.getAlgorithmKey(board.currentAlgorithm, board.currentHeuristic),
             heuristic: board.currentHeuristic,
             speed: board.speed,
             weightValue: board.currentWeightValue
