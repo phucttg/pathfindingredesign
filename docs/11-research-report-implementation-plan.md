@@ -45,7 +45,7 @@ Each card has **8 sections**: Badges, One-liner, How it works, Pseudocode, Key i
 
 | Report Section | Where It Maps in the Codebase | Current State | Action Needed |
 |---|---|---|---|
-| **A) Badges** (weighted/optimal/complete/heuristic/guarantees) | `algorithmDescriptions.js` → `category`, `guaranteesOptimal` | **Partial** – has `category` and `guaranteesOptimal` only | Add `complete` (boolean/string), `usesHeuristic` (already in characteristics), `badges` array. Translate to Vietnamese labels. |
+| **A) Badges** (weighted/optimal/complete/heuristic/guarantees) | `algorithmDescriptions.js` → `category`, `guaranteesOptimal`, `complete`, `badges[]` | **✅ Implemented** – has `category`, `guaranteesOptimal`, `complete` (boolean/string), and `badges[]` array | Translate labels to Vietnamese if needed. |
 | **B) One-liner** | `algorithmDescriptions.js` → `shortDescription` | **Exists** (English) | **Replace** with Vietnamese one-liners from report |
 | **C) How it works** | `algorithmDescriptions.js` → `howItWorks[]` | **Exists** (English, simplified) | **Replace/enrich** with the fuller Vietnamese steps from report |
 | **D) Pseudocode** | `algorithmDescriptions.js` → `pseudocode[]` | **Exists** (abbreviated English) | **Replace** with the detailed pseudocode from report (keep as text, Vietnamese comments) |
@@ -75,7 +75,7 @@ Each card has **8 sections**: Badges, One-liner, How it works, Pseudocode, Key i
 
 ### 3.1 `public/browser/utils/algorithmDescriptions.js`
 
-**This is the primary target.** Currently 232 lines with data for 8 algorithms.
+**This is the primary target.** Currently **403 lines** with data for 8 algorithms.
 
 **Fields to update (per algorithm):**
 
@@ -92,13 +92,13 @@ Each card has **8 sections**: Badges, One-liner, How it works, Pseudocode, Key i
 | `characteristics.timeComplexity` | Update | Add detail from report (e.g., "Array: O(V²); Binary heap: O(E log V)") |
 | `characteristics.usesHeuristic` | Keep | Already correct |
 | `characteristics.selectionRule` | Update | Vietnamese from report |
-| **NEW** `characteristics.spaceComplexity` | Add | From section F |
-| **NEW** `characteristics.bestFor` | Add | From section F |
-| **NEW** `characteristics.weakness` | Add | From section F |
-| **NEW** `characteristics.notesOnGridWeights` | Add | From section F |
-| **NEW** `complete` | Add | Boolean/string: `true`, `false`, `"variant-dependent"` |
-| **NEW** `pitfalls[]` | Add | Array of strings from section G |
-| **NEW** `visualBehavior[]` | Add | Array of strings from section H |
+| **NEW** `characteristics.spaceComplexity` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
+| **NEW** `characteristics.bestFor` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
+| **NEW** `characteristics.weakness` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
+| **NEW** `characteristics.notesOnGridWeights` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
+| **NEW** `complete` | ~~Add~~ | **✅ Already exists** (Boolean/string: `true`, `false`, `"variant-dependent"`) |
+| **NEW** `pitfalls[]` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
+| **NEW** `visualBehavior[]` | ~~Add~~ | **✅ Already exists** in all 8 algorithms |
 
 **Algorithms requiring changes:** All 8 (dijkstra, astar, greedy, swarm, convergentSwarm, bidirectional, bfs, dfs).
 
@@ -137,9 +137,9 @@ Each card has **8 sections**: Badges, One-liner, How it works, Pseudocode, Key i
 | Item | Change |
 |---|---|
 | `ALGORITHM_META[*].selectionRule` | Replace with Vietnamese text from report section F |
-| Add `ALGORITHM_META[*].complete` | From report badges |
-| Add `ALGORITHM_META[*].weakness` | From report section F |
-| Add `ALGORITHM_META[*].bestFor` | From report section F |
+| ~~Add `ALGORITHM_META[*].complete`~~ | **✅ Already exists** in `ALGORITHM_META` for all 8 algorithms |
+| ~~Add `ALGORITHM_META[*].weakness`~~ | **✅ Already exists** in `ALGORITHM_META` for all 8 algorithms |
+| ~~Add `ALGORITHM_META[*].bestFor`~~ | **✅ Already exists** in `ALGORITHM_META` for all 8 algorithms |
 | `buildRunDigest()` | No structural change, but the strings it sends will now be Vietnamese |
 
 ### 3.5 `public/browser/board.js`
@@ -278,16 +278,16 @@ All data is already structured in `algorithmDescriptions.js` after the enrichmen
 
 | Report Content | Codebase Gap | Priority |
 |---|---|---|
-| `complete` property (is the algorithm complete?) | Not tracked anywhere | 🔴 High – needed for badges |
-| `spaceComplexity` | Not in characteristics | 🟡 Medium |
-| `bestFor` (best use case) | Not in characteristics | 🟡 Medium |
-| `weakness` | Not in characteristics | 🟡 Medium |
-| `notesOnGridWeights` | Not in characteristics | 🟢 Low-Medium |
-| `pitfalls[]` (Common Pitfalls) | Not in any file | 🔴 High – core educational value |
-| `visualBehavior[]` (Visual behavior) | Not in any file | 🔴 High – core educational value |
-| Comparison table UI | No equivalent feature | 🟡 Medium |
+| ~~`complete` property~~ | **✅ Already exists** in `algorithmDescriptions.js` | ~~🔴 High~~ Done |
+| ~~`spaceComplexity`~~ | **✅ Already exists** in all 8 algorithms | ~~🟡 Medium~~ Done |
+| ~~`bestFor`~~ | **✅ Already exists** in all 8 algorithms | ~~🟡 Medium~~ Done |
+| ~~`weakness`~~ | **✅ Already exists** in all 8 algorithms | ~~🟡 Medium~~ Done |
+| ~~`notesOnGridWeights`~~ | **✅ Already exists** in all 8 algorithms | ~~🟢 Low-Medium~~ Done |
+| ~~`pitfalls[]`~~ | **✅ Already exists** in all 8 algorithms | ~~🔴 High~~ Done |
+| ~~`visualBehavior[]`~~ | **✅ Already exists** in all 8 algorithms | ~~🔴 High~~ Done |
+| ~~Comparison table UI~~ | **✅ Already exists** — `algorithmCompare.js` (133 LOC) | ~~🟡 Medium~~ Done |
 | "Cách chọn nhanh" (quick selection guide) | No equivalent feature | 🟢 Low |
-| Full Vietnamese translations | All text is English | 🔴 High – per your requirement |
+| Full Vietnamese translations | All text is English — `LANGUAGE_POLICY = "english"` in `server.js` | 🔴 High — if Vietnamese is still desired |
 
 ### What's in the codebase but not in the report
 
@@ -305,23 +305,27 @@ All data is already structured in `algorithmDescriptions.js` after the enrichmen
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **Large diff in `algorithmDescriptions.js`** | ~230 lines → likely ~600+ lines after enrichment | Split into 8 commits (one per algorithm) |
+| **Large diff in `algorithmDescriptions.js`** | ~403 lines currently, may grow to ~600+ after Vietnamese enrichment | Split into 8 commits (one per algorithm) |
 | **Vietnamese text length** | Vietnamese text is often longer than English → modal/sidebar may overflow | Test with all 8 algorithms; add CSS for scrollable sections |
 | **Pseudocode in Vietnamese comments** | The pseudocode itself uses English-like syntax with Vietnamese comments — this is standard and readable | Keep pseudocode keywords in English (e.g., `while`, `if`, `return`), comments in Vietnamese |
-| **AI prompt language switch** | The OpenAI prompt in `server.js` currently asks for English output | Update `buildPrompt()` to request Vietnamese output |
+| **AI prompt language switch** | The OpenAI prompt in `server.js` currently asks for English output; `LANGUAGE_POLICY = "english"` already exists with conditional prompt logic | Update `buildPrompt()` to request Vietnamese output if policy changes |
 | **Bundle size** | Adding ~400 lines of text increases `bundle.js` | Acceptable for educational app; could lazy-load comparison data if needed |
-| **Testing** | No automated tests for algorithmDescriptions/modal rendering | Consider adding a basic test that all 8 algorithm keys have all required fields |
+| **Testing** | `tests/algorithmDescriptionsSchema.test.js` already validates schema; no modal rendering tests yet | Extend existing test for new fields; add modal rendering tests if needed |
 | **Swarm/Convergent/Bidirectional Swarm pseudocode** | Report marks these as "variant-dependent". Code uses specific formulas (e.g., `h^7` for convergentSwarm). | Cross-reference report pseudocode with actual `weightedSearchAlgorithm.js` formulas; annotate discrepancies |
 
 ---
 
 ## Summary
 
-The research report maps **directly** onto the existing codebase structure. The primary work is:
+The research report maps **directly** onto the existing codebase structure. The vast majority of data-layer gaps have been resolved:
 
-1. **Enriching `algorithmDescriptions.js`** with all 8 sections in Vietnamese (biggest task)
-2. **Updating `algorithmModal.js`** to render the 3 new sections (Pitfalls, Visual behavior, expanded Characteristics)
-3. **Translating all user-facing strings** across ~8 files to Vietnamese
-4. **Adding a comparison table feature** (1 new file + UI hookup)
+1. **`algorithmDescriptions.js` already enriched** (403 LOC) with all 8 sections × 8 algorithms including `complete`, `spaceComplexity`, `bestFor`, `weakness`, `notesOnGridWeights`, `pitfalls[]`, `visualBehavior[]`
+2. **`algorithmCompare.js` already created** (133 LOC) with full comparison modal
+3. **`aiExplain.js` `ALGORITHM_META` already enriched** with `complete`, `weakness`, `bestFor` for all 8 algorithms
+
+The remaining primary work is:
+1. **Translating all user-facing strings** across ~8 files to Vietnamese (if still desired)
+2. **Updating `algorithmModal.js`** to render Pitfalls and Visual Behavior sections (verify current rendering)
+3. **Adding "Cách chọn nhanh" quick selection guide** (optional)
 
 No algorithm logic changes are needed — this is purely a **content and UI update**.
