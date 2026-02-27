@@ -3,9 +3,11 @@
 > **Note:** This document describes the **target architecture**. The 3-day roadmap (doc 07) takes incremental steps toward this structure without a full rewrite. Not all layers will be cleanly separated after MVP.
 
 ## 1) Current pain points
-- `board.js` is a “God object”: state + DOM + orchestration + tutorial
+- `board.js` is a "God object": state + DOM + orchestration + tutorial (**2032 LOC**, nearly doubled from original 1115)
 - Algorithms mutate node state and rely on board queues
 - Hard to add trace/explanations cleanly without further coupling
+
+> **Partial mitigation:** 11 new utility modules + `AnimationController` provide some separation, but `board.js` still handles model + rendering + UI + orchestration.
 
 ## 2) Target lightweight architecture (framework-agnostic)
 Split into four layers:
@@ -31,6 +33,8 @@ Split into four layers:
 - Saves history
 
 ## 3) Minimal Changes to Algorithms
+
+**✅ Implemented** — all 4 algorithm files now accept and populate `trace[]`.
 
 ```javascript
 // Before (current)
@@ -70,30 +74,33 @@ function weightedSearchAlgorithm(nodes, start, target, nodesToAnimate, ..., trac
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ 1. Validate digest                                   │   │
 │  │ 2. Build prompt with guardrails                      │   │
-│  │ 3. Call OpenAI Responses API                         │   │
-│  │ 4. Return { explanation: "...3 sentences..." }       │   │
+│  │ 3. Call OpenAI Chat Completions API (gpt-4o-mini)     │   │
+│  │ 4. Return { explanation: "...5 sentences..." }        │   │
 │  └─────────────────────────────────────────────────────┘   │
 └────────────────────────────────┬────────────────────────────┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  OpenAI Responses API                                       │
-│  - API key from process.env.OPENAI_API_KEY                  │
-│  - Model: gpt-4o-mini or gpt-3.5-turbo (cost-effective)     │
+│  OpenAI Chat Completions API                                │
+│  - Endpoint: /v1/chat/completions                            │
+│  - API key from process.env.OPENAI_API_KEY                   │
+│  - Model: gpt-4o-mini (cost-effective)                       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Security
 
-- **API key in env var only:** `process.env.OPENAI_API_KEY`
+- **API key in env var only:** `process.env.OPENAI_API_KEY` (loaded via `dotenv`)
 - **Never shipped to client:** No API key in browser JS or HTML
 - **Server-side only:** All OpenAI calls happen in Express
+- **Helmet:** Security headers middleware (CSP, etc.)
+- **Rate limiting:** `express-rate-limit` at 30 requests per 15 minutes on `/api/explain`
 
 ### Trigger Point
 
 - **Location:** `board.js` → `drawShortestPathTimeout()` → after `board.toggleButtons()`
 - **Condition:** `success === true`
-- **Action:** Call `board.triggerAIExplanation()` or emit custom event
+- **Action:** Call `aiExplain.requestAIExplanation()` (in `utils/aiExplain.js`, 231 LOC)
 
 ### Caching (Future Enhancement)
 
