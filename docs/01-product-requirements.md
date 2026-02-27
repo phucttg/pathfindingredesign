@@ -17,7 +17,7 @@
 2. Choose algorithm + speed + cost settings
 3. Click Visualize
 4. Follow explanation panel (current node, reason, cost updates)
-5. (Optional later) pause / step
+5. Pause / step through animation using playback controls (**implemented** — `AnimationController`)
 
 ### Flow B — Experiment (Cost)
 1. Choose weight value / preset terrain
