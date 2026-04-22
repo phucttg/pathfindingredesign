@@ -70,7 +70,7 @@ Open http://localhost:1337 in your browser.
 | `npm start` | Start dev server with nodemon (port 1337) |
 | `npm run build:client` | Bundle client JS via Browserify |
 | `npm run watch` | Watch mode — auto-rebuild bundle on file changes |
-| `npm test` | Run unit tests (weightImpactAnalyzer + algorithmDescriptionsSchema) |
+| `npm test` | Run automated tests for algorithm behaviour, controls, persistence, fallback, explanation logic, and schema integrity |
 
 ### Enable AI Explanations (Optional)
 
@@ -233,9 +233,13 @@ Generate an AI explanation for a completed pathfinding run.
 # Run all unit tests
 npm test
 
-# Expected output:
+# Expected pass lines include:
+# pathfindingAlgorithmsBehavior tests passed.
+# animationController tests passed.
+# runPersistence tests passed.
+# aiExplainFallback tests passed.
 # weightImpactAnalyzer tests passed.
-# algorithmDescriptionsSchema tests passed.
+# algorithmDescriptions schema tests passed.
 ```
 
 ### Manual Testing Checklist
@@ -271,7 +275,7 @@ pathfindingredesign/
 ├── package.json                      # Dependencies & scripts
 ├── .env.example                      # Environment template
 │
-├── docs/                             # Documentation (13 files)
+├── docs/                             # Documentation (15 files)
 │   ├── 00-context-and-vision.md
 │   ├── 01-product-requirements.md
 │   ├── 02-feature-spec-step-by-step-explanations.md
@@ -284,9 +288,14 @@ pathfindingredesign/
 │   ├── 10-feature-spec-insight-feynman-tooltips.md
 │   ├── 11-research-report-implementation-plan.md
 │   ├── 12-project-planning-and-architecture-corrected.md
+│   ├── 13-high-level-system-architecture.md
 │   └── conventional-commits-cheatsheet.md
 │
 ├── tests/
+│   ├── pathfindingAlgorithmsBehavior.test.js
+│   ├── animationController.test.js
+│   ├── runPersistence.test.js
+│   ├── aiExplainFallback.test.js
 │   ├── weightImpactAnalyzer.test.js
 │   └── algorithmDescriptionsSchema.test.js
 │
@@ -340,51 +349,35 @@ pathfindingredesign/
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────┐
-│                    Browser (SPA)                     │
-│                                                      │
-│  board.js ──────── Central Controller (Board)        │
-│    ├── node.js ............. Grid cell data model    │
-│    ├── getDistance.js ....... Turn-aware cost calc   │
-│    ├── pathfindingAlgorithms/                        │
-│    │     ├── astar.js                                │
-│    │     ├── weightedSearchAlgorithm.js              │
-│    │     ├── unweightedSearchAlgorithm.js            │
-│    │     └── bidirectional.js                        │
-│    ├── animations/                                   │
-│    │     ├── animationController.js (pause/step)     │
-│    │     ├── launchAnimations.js (timed)             │
-│    │     ├── launchInstantAnimations.js (sync)       │
-│    │     └── mazeGenerationAnimations.js             │
-│    ├── mazeAlgorithms/ (6 generators)                │
-│    └── utils/                                        │
-│          ├── aiExplain.js ─── fetch /api/explain ─┐  │
-│          ├── algorithmDescriptions.js (registry)  │  │
-│          ├── explanationTemplates.js (Feynman)    │  │
-│          ├── gridMetrics.js (pure)                │  │
-│          ├── historyStorage.js (localStorage)     │  │
-│          ├── historyUI.js (run cards)             │  │
-│          ├── runSerializer.js (board → JSON)      │  │
-│          ├── weightImpactAnalyzer.js (analysis)   │  │
-│          ├── algorithmCompare.js (modal)          │  │
-│          ├── algorithmModal.js (modal)            │  │
-│          └── mazeSelector.js (maze UI)            │  │
-├──────────────────────────────────────────────────────┤
-│                 HTTP POST /api/explain               │
-└──────────────────────┬───────────────────────────────┘
-                       ▼
-┌──────────────────────────────────────────────────────┐
-│              Express Server (server.js)              │
-│  • helmet (CSP, security headers)                    │
-│  • express-rate-limit (30 req/15min)                 │
-│  • Static file serving (/public)                     │
-│  • POST /api/explain → OpenAI proxy (gpt-4o-mini)    │
-│  • Deterministic fallback on API failure             │
-└──────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+  user["User"]
+
+  subgraph browser["Browser App"]
+    direction LR
+    ui["UI"]
+    board["Board Controller"]
+    algo["Algorithms + Visualization"]
+  end
+
+  store[("localStorage<br/>history + sidebar state")]
+  api["Express API"]
+  llm["OpenAI API"]
+
+  user -->|"interact"| ui
+  ui --> board
+  board -->|"run"| algo
+  board <-->|"save/load"| store
+  board -->|"POST /api/explain"| api
+  api --> llm
+  api -->|"AI summary"| board
 ```
 
-**Pattern:** Client-side monolith with a thin server proxy. All pathfinding computation, animation, grid manipulation, and state management happen in the browser. The server is a minimal static-file host + AI explanation proxy.
+Main logic runs in the browser. The server is only used for AI summaries and static serving.
+
+- Browser is where the app mainly runs.
+- `Board Controller` is the central coordinator.
+- History stays in `localStorage`, and AI goes through Express.
 
 ---
 

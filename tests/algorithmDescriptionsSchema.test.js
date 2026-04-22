@@ -1,5 +1,6 @@
 const assert = require("assert");
 const { descriptions } = require("../public/browser/utils/algorithmDescriptions");
+const { runScenario } = require("./testHelpers");
 
 const REQUIRED_ALGORITHMS = [
   "dijkstra",
@@ -60,8 +61,10 @@ function validateAlgorithmObject(key) {
 }
 
 function run() {
-  REQUIRED_ALGORITHMS.forEach(validateAlgorithmObject);
-  console.log("algorithmDescriptions schema tests passed.");
+  runScenario("All required algorithm objects and fields are present", function () {
+    REQUIRED_ALGORITHMS.forEach(validateAlgorithmObject);
+  });
+  console.log("Completed algorithmDescriptionsSchema.test.js");
 }
 
 run();

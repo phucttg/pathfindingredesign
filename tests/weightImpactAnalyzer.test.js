@@ -1,5 +1,6 @@
 const assert = require("assert");
 const { analyzeWeightImpact } = require("../public/browser/utils/weightImpactAnalyzer");
+const { runScenario } = require("./testHelpers");
 
 function makeNode(id, weight, previousNode) {
   return { id: id, weight: weight || 0, previousNode: previousNode || null };
@@ -60,10 +61,10 @@ function testUsesShortestPathNodesToAnimate() {
 }
 
 function run() {
-  testNoWeights();
-  testWeightsInPath();
-  testUsesShortestPathNodesToAnimate();
-  console.log("weightImpactAnalyzer tests passed.");
+  runScenario("No weights in the path", testNoWeights);
+  runScenario("Weights in the path are counted correctly", testWeightsInPath);
+  runScenario("shortestPathNodesToAnimate is used as the path source", testUsesShortestPathNodesToAnimate);
+  console.log("Completed weightImpactAnalyzer.test.js");
 }
 
 run();
